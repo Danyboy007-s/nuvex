@@ -13,7 +13,7 @@ const toolCategories = [
       </svg>
     ),
     tools: [
-      { id: "pdf-converter", name: "PDF Converter", desc: "Combina, extrae o comprime PDFs." },
+      { id: "pdf-converter", name: "PDF Converter", desc: "Combina, extrae u optimiza PDFs" },
     ]
   },
   {
@@ -26,9 +26,9 @@ const toolCategories = [
       </svg>
     ),
     tools: [
-      { id: "file-utils", name: "Compresor", desc: "Reduce el peso de tus fotos." },
-      { id: "remove-metadata", name: "Limpiar metadatos", desc: "Borra datos ocultos (GPS, cámara)." },
-      { id: "png-to-dxf", name: "PNG/JPG a DXF", desc: "Convierte a DXF para AutoCAD." },
+      { id: "file-utils", name: "Compresor", desc: "Reduce el peso de tus fotos" },
+      { id: "remove-metadata", name: "Limpiar metadatos", desc: "Borra datos ocultos (GPS, cámara)" },
+      { id: "png-to-dxf", name: "Vectorizar", desc: "Convierte a DXF para AutoCAD" },
     ]
   },
   {
@@ -41,8 +41,8 @@ const toolCategories = [
       </svg>
     ),
     tools: [
-      { id: "text-humanizer", name: "Humanizar texto", desc: "Quita lo robótico a la IA." },
-      { id: "qr-generator", name: "Generador QR", desc: "Crea códigos con logo y color." },
+      { id: "text-humanizer", name: "Humanizar", desc: "Quita lo robótico a la IA" },
+      { id: "qr-generator", name: "Generador QR", desc: "Crea códigos con logo y color" },
     ]
   }
 ];
@@ -91,7 +91,7 @@ export default function ToolSidebar({ selectedToolId, onSelectTool }) {
               Herramientas
             </p>
             <p className="text-[11px] text-[var(--text-tertiary)]">
-              
+              sin prisa
             </p>
           </div>
 
@@ -120,7 +120,9 @@ export default function ToolSidebar({ selectedToolId, onSelectTool }) {
                     >
                       <div className="flex flex-col">
                         <span>{tool.name}</span>
-                        <span className="text-[10px] text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]">{tool.desc}</span>
+                        <span className="text-[10px] text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]">
+                          {tool.desc}
+                        </span>
                       </div>
                     </button>
                   ))}
