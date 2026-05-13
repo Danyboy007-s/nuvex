@@ -16,9 +16,8 @@ export default function Document() {
         <link rel="icon" href="/favicon.ico" />
         <meta property="og:type" content="website" />
         <meta property="og:title" content="Nuvex - Herramientas de conversión sin complicaciones" />
-        <meta property="og:description" content="Convierte, limpia y optimiza archivos directamente en tu navegador. Sin colas, sin cuentas, sin publicidad." />
+        <meta property="og:description" content="Convierte, limpia y optimiza archivos directamente en tu navegador." />
         <meta property="og:url" content="https://nuvex.app" />
-        <meta property="og:image" content="/og-image.png" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Nuvex - Herramientas de conversión" />
         <meta name="twitter:description" content="Herramientas rápidas y directas. Sin servidores, sin complicaciones." />

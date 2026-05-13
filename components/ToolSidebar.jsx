@@ -28,7 +28,8 @@ const toolCategories = [
     tools: [
       { id: "file-utils", name: "Compresor", desc: "Reduce el peso de tus fotos" },
       { id: "remove-metadata", name: "Limpiar metadatos", desc: "Borra datos ocultos (GPS, cámara)" },
-      { id: "png-to-dxf", name: "Vectorizar", desc: "Convierte a DXF para AutoCAD" },
+      { id: "remove-bg", name: "Eliminar fondo", desc: "Quita fondos de imágenes con IA" },
+      { id: "png-to-dxf", name: "PNG/JPG a DXF", desc: "Convierte a DXF para AutoCAD" },
     ]
   },
   {
@@ -49,14 +50,32 @@ const toolCategories = [
 
 export default function ToolSidebar({ selectedToolId, onSelectTool }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('nuvex-sidebar-collapsed');
+    if (saved !== null) {
+      setSidebarCollapsed(saved === 'true');
+    }
+  }, []);
+
+  const toggleSidebar = () => {
+    const newState = !sidebarCollapsed;
+    setSidebarCollapsed(newState);
+    localStorage.setItem('nuvex-sidebar-collapsed', newState);
+  };
 
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 768) setMobileOpen(false);
+      if (window.innerWidth < 1024 && !sidebarCollapsed) {
+        setSidebarCollapsed(true);
+        localStorage.setItem('nuvex-sidebar-collapsed', 'true');
+      }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [sidebarCollapsed]);
 
   return (
     <>
@@ -77,71 +96,110 @@ export default function ToolSidebar({ selectedToolId, onSelectTool }) {
 
       <aside className={`
         fixed md:sticky top-0 left-0 z-40
-        w-64 h-screen
+        transition-all duration-300 ease-out
         bg-[var(--surface)]/95
         backdrop-blur-sm
         border-r border-[var(--border)]
-        transform transition-all duration-300 ease-out
-        md:transform-none overflow-y-auto
+        overflow-y-auto
+        flex flex-col
+        ${sidebarCollapsed ? 'w-12' : 'w-64'}
         ${mobileOpen ? 'translate-x-0 shadow-lg' : '-translate-x-full md:translate-x-0'}
       `}>
-        <div className="py-6 px-4">
-          <div className="mb-8">
-            <p className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase mb-1">
-              Herramientas
-            </p>
-            <p className="text-[11px] text-[var(--text-tertiary)]">
-              sin prisa
-            </p>
-          </div>
-
-          <div className="space-y-6">
+        {sidebarCollapsed ? (
+          <div className="py-4 flex flex-col items-center gap-4">
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-lg hover:bg-[var(--surface-hover)] transition-colors"
+              title="Expandir menú"
+            >
+              <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            </button>
+            <div className="w-6 h-px bg-[var(--border)]" />
             {toolCategories.map((category) => (
-              <div key={category.name}>
-                <div className="flex items-center gap-1.5 mb-2 px-2">
+              <div key={category.name} className="group relative">
+                <div className="p-2">
                   {category.icon}
-                  <h3 className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
-                    {category.name}
-                  </h3>
                 </div>
-                <div className="space-y-0.5">
-                  {category.tools.map((tool) => (
-                    <button
-                      key={tool.id}
-                      onClick={() => { onSelectTool(tool); setMobileOpen(false); }}
-                      className={`
-                        group w-full text-left px-3 py-2 rounded-xl text-sm
-                        transition-all duration-150
-                        ${selectedToolId === tool.id 
-                          ? 'bg-[var(--bg)] text-[var(--text-primary)] font-medium' 
-                          : 'text-[var(--text-secondary)] hover:bg-[var(--bg)] hover:text-[var(--text-primary)]'
-                        }
-                      `}
-                    >
-                      <div className="flex flex-col">
-                        <span>{tool.name}</span>
-                        <span className="text-[10px] text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]">
-                          {tool.desc}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
+                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-[var(--surface)] border border-[var(--border)] rounded-lg text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  {category.name}
                 </div>
               </div>
             ))}
           </div>
+        ) : (
+          <div className="py-6 px-4 flex-1 flex flex-col">
+            <div className="mb-8">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase mb-1">
+                    Herramientas
+                  </p>
+                  <p className="text-[11px] text-[var(--text-tertiary)]">
+                    NUVEX
+                  </p>
+                </div>
+                <button
+                  onClick={toggleSidebar}
+                  className="p-1 rounded-lg hover:bg-[var(--surface-hover)] transition-colors"
+                  title="Ocultar menú"
+                >
+                  <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7M19 19l-7-7 7-7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
 
-          <div className="mt-8 pt-4 border-t border-[var(--border)]">
-            <Link href="/">
-              <button className="w-full text-center py-2 rounded-lg text-sm font-medium text-white bg-[var(--accent)] hover:opacity-85 transition-all shadow-sm">
-                Volver al inicio
-              </button>
-            </Link>
-            <p className="text-[9px] text-center text-[var(--text-tertiary)] mt-3 opacity-50">
-              conversiones directas
-            </p>
+            <div className="space-y-6 flex-1">
+              {toolCategories.map((category) => (
+                <div key={category.name}>
+                  <div className="flex items-center gap-1.5 mb-2 px-2">
+                    {category.icon}
+                    <h3 className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
+                      {category.name}
+                    </h3>
+                  </div>
+                  <div className="space-y-0.5">
+                    {category.tools.map((tool) => (
+                      <button
+                        key={tool.id}
+                        onClick={() => { onSelectTool(tool); setMobileOpen(false); }}
+                        className={`
+                          group w-full text-left px-3 py-2 rounded-xl text-sm
+                          transition-all duration-150
+                          ${selectedToolId === tool.id 
+                            ? 'bg-[var(--bg)] text-[var(--text-primary)] font-medium' 
+                            : 'text-[var(--text-secondary)] hover:bg-[var(--bg)] hover:text-[var(--text-primary)]'
+                          }
+                        `}
+                      >
+                        <div className="flex flex-col">
+                          <span>{tool.name}</span>
+                          <span className="text-[10px] text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]">
+                            {tool.desc}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-[var(--border)]">
+              <Link href="/">
+                <button className="w-full text-center py-2 rounded-lg text-sm font-medium text-white bg-[var(--accent)] hover:opacity-85 transition-all shadow-sm">
+                  Volver al inicio
+                </button>
+              </Link>
+              <p className="text-[9px] text-center text-[var(--text-tertiary)] mt-3 opacity-50">
+                conversiones directas
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </aside>
 
       {mobileOpen && (

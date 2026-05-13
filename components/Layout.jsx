@@ -1,14 +1,13 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
 
-export default function Layout({ children, title = "Nuvex", description = "Herramientas de conversión. Silencioso, como una estación de tren de noche." }) {
+export default function Layout({ children, title = "Nuvex", description = "Herramientas de conversión." }) {
 
   const [time, setTime] = useState("");
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('nuvex-theme');
-    // MODO CLARO POR DEFECTO: solo oscuro si savedTheme === 'dark'
     const darkMode = savedTheme === 'dark';
     setIsDark(darkMode);
     if (darkMode) {
@@ -47,13 +46,13 @@ export default function Layout({ children, title = "Nuvex", description = "Herra
         <meta name="description" content={description} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <link rel="icon" href="/favicon.svg" />
+        {/* Preconnect para fuentes - mejora velocidad */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </Head>
       <main className="relative min-h-screen flex flex-col bg-[var(--bg)] transition-colors duration-300">
-        
-        {/* Atmósfera */}
         <div className="rain-atmosphere" />
         
-        {/* Reloj y botón de tema */}
         <div className="fixed top-5 right-5 z-50 flex items-center gap-3">
           <div className="text-sm font-medium text-[var(--text-secondary)] tracking-wide tabular-nums">
             {time}
@@ -61,6 +60,7 @@ export default function Layout({ children, title = "Nuvex", description = "Herra
           <button
             onClick={toggleTheme}
             className="w-8 h-8 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+            aria-label="Cambiar tema"
           >
             {isDark ? (
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,7 +75,6 @@ export default function Layout({ children, title = "Nuvex", description = "Herra
           </button>
         </div>
         
-        {/* Contenido principal */}
         <div className="relative z-10 flex-1">
           {children}
         </div>
