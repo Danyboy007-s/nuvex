@@ -1,14 +1,57 @@
 import { useState, useRef, useEffect } from "react";
 import Layout from "../../components/Layout";
 
+// ============================================
+// AJUSTES DE LECTURA
+// ============================================
+// Zona de silencio: margen del color de fondo alrededor del código.
+// El estándar pide ~4 módulos; sin él muchos lectores de celular fallan.
+// Se expresa como fracción del tamaño total para que escale con el QR.
+const QUIET_ZONE_RATIO = 0.08;
+
+// Resolución del PNG descargado (px del lado del QR, sin contar el marco).
+// La vista previa es pequeña, pero para imprimir se necesita más detalle.
+const EXPORT_SIZE = 1024;
+
+// Contraste mínimo (escala WCAG, 1 a 21) entre puntos y fondo para
+// considerar el QR "seguro" de escanear.
+const MIN_CONTRAST = 4;
+
+// Presets: todos usan puntos OSCUROS sobre fondo CLARO. Los QR invertidos
+// (puntos claros sobre fondo oscuro) no los leen muchas apps de cámara.
 const PRESETS = [
   { name: "Noir", qrColor: "#0f0f0f", bgColor: "#ffffff", dotStyle: "rounded", cornerStyle: "extra-rounded", gradient: null },
-  { name: "Ocean", qrColor: "#0ea5e9", bgColor: "#0f172a", dotStyle: "rounded", cornerStyle: "rounded", gradient: { type: "linear", from: "#0ea5e9", to: "#6366f1" } },
-  { name: "Sunset", qrColor: "#f97316", bgColor: "#fff7ed", dotStyle: "classy-rounded", cornerStyle: "rounded", gradient: { type: "linear", from: "#f97316", to: "#ec4899" } },
-  { name: "Forest", qrColor: "#16a34a", bgColor: "#f0fdf4", dotStyle: "rounded", cornerStyle: "extra-rounded", gradient: { type: "linear", from: "#16a34a", to: "#0d9488" } },
-  { name: "Galaxy", qrColor: "#a855f7", bgColor: "#0a0a1a", dotStyle: "rounded", cornerStyle: "rounded", gradient: { type: "radial", from: "#a855f7", to: "#ec4899" } },
-  { name: "Gold", qrColor: "#ca8a04", bgColor: "#1c1008", dotStyle: "square", cornerStyle: "square", gradient: { type: "linear", from: "#fbbf24", to: "#ca8a04" } },
+  { name: "Ocean", qrColor: "#0369a1", bgColor: "#f0f9ff", dotStyle: "rounded", cornerStyle: "rounded", gradient: { type: "linear", from: "#0369a1", to: "#4338ca" } },
+  { name: "Sunset", qrColor: "#c2410c", bgColor: "#fff7ed", dotStyle: "classy-rounded", cornerStyle: "rounded", gradient: { type: "linear", from: "#c2410c", to: "#be185d" } },
+  { name: "Forest", qrColor: "#15803d", bgColor: "#f0fdf4", dotStyle: "rounded", cornerStyle: "extra-rounded", gradient: { type: "linear", from: "#15803d", to: "#0f766e" } },
+  { name: "Galaxy", qrColor: "#7e22ce", bgColor: "#faf5ff", dotStyle: "rounded", cornerStyle: "rounded", gradient: { type: "radial", from: "#7e22ce", to: "#be185d" } },
+  { name: "Gold", qrColor: "#854d0e", bgColor: "#fffbeb", dotStyle: "square", cornerStyle: "square", gradient: { type: "linear", from: "#a16207", to: "#713f12" } },
 ];
+
+// ============================================
+// UTILIDADES DE COLOR
+// ============================================
+const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+
+// Los inputs de texto permiten escribir cualquier cosa; si el color no es
+// un hex válido usamos un respaldo para que la librería no falle.
+const safeColor = (value, fallback) => (HEX_RE.test(value) ? value : fallback);
+
+// Luminancia relativa según WCAG (0 = negro, 1 = blanco).
+function luminance(hex) {
+  let h = hex.slice(1);
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  const [r, g, b] = [0, 2, 4].map((i) => {
+    const c = parseInt(h.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function contrastRatio(a, b) {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
 
 const DOT_STYLES = [
   { value: "dots", label: "Círculos", icon: "●" },
@@ -94,37 +137,70 @@ export default function QRGeneratorPage({ standalone = false }) {
 
   const removeLogo = () => { setLogo(null); setLogoPreview(null); if (logoInputRef.current) logoInputRef.current.value = ""; };
 
-  const buildQRConfig = () => ({
-    width: qrSize,
-    height: qrSize,
+  // Colores ya validados: lo que se usa para dibujar y para medir contraste.
+  const dotColor = safeColor(qrColor, "#000000");
+  const backColor = safeColor(bgColor, "#ffffff");
+  const gradFrom = safeColor(gradientFrom, dotColor);
+  const gradTo = safeColor(gradientTo, dotColor);
+  // Color del texto y borde del marco.
+  const accentColor = useGradient ? gradFrom : dotColor;
+
+  // Contraste del color MÁS débil de los puntos contra el fondo.
+  // Con gradiente, ambos extremos deben contrastar bien.
+  const dotColors = useGradient ? [gradFrom, gradTo] : [dotColor];
+  const minContrast = Math.min(...dotColors.map((c) => contrastRatio(c, backColor)));
+  // QR invertido = puntos más claros que el fondo.
+  const isInverted = dotColors.some((c) => luminance(c) > luminance(backColor));
+  const scanWarning = isInverted
+    ? "Los puntos son más claros que el fondo (QR invertido). Muchas cámaras no lo leerán."
+    : minContrast < MIN_CONTRAST
+      ? "Poco contraste entre los puntos y el fondo. Puede costar escanearlo."
+      : null;
+
+  // Configuración para qr-code-styling. `size` permite reutilizarla tanto
+  // para la vista previa (qrSize) como para la descarga (EXPORT_SIZE).
+  const buildQRConfig = (size) => ({
+    width: size,
+    height: size,
+    // Zona de silencio (ver QUIET_ZONE_RATIO). Se pinta con el color de fondo.
+    margin: Math.round(size * QUIET_ZONE_RATIO),
     data: text,
-    image: logo || null,
+    image: logo || undefined,
+    qrOptions: {
+      // Corrección de errores: con logo usamos "H" (tolera ~30% del código
+      // tapado); sin logo basta "M" (~15%), que genera un QR menos denso.
+      errorCorrectionLevel: logo ? "H" : "M",
+    },
     dotsOptions: {
-      color: qrColor,
+      color: dotColor,
       type: dotStyle,
       ...(useGradient && {
         gradient: {
           type: gradientType,
-          rotation: 45,
+          rotation: Math.PI / 4, // la librería usa radianes (45°)
           colorStops: [
-            { offset: 0, color: gradientFrom },
-            { offset: 1, color: gradientTo },
+            { offset: 0, color: gradFrom },
+            { offset: 1, color: gradTo },
           ],
         },
       }),
     },
-    backgroundOptions: { color: bgColor },
+    backgroundOptions: { color: backColor },
+    // Los valores de CORNER_STYLES coinciden con los de la librería.
     cornersSquareOptions: {
-      color: useGradient ? gradientFrom : qrColor,
-      type: cornerStyle === "dot" ? "dot" : cornerStyle === "extra-rounded" ? "extra-rounded" : cornerStyle === "rounded" ? "rounded" : "square",
+      color: useGradient ? gradFrom : dotColor,
+      type: cornerStyle,
     },
     cornersDotOptions: {
-      color: useGradient ? gradientTo : qrColor,
+      color: useGradient ? gradTo : dotColor,
       type: cornerStyle === "dot" ? "dot" : undefined,
     },
     imageOptions: {
       crossOrigin: "anonymous",
-      margin: logoRounded ? 6 : 4,
+      // Quita los puntos detrás del logo para que no se mezclen con él.
+      hideBackgroundDots: true,
+      // El margen del logo se escala con el tamaño del QR.
+      margin: Math.round(size * (logoRounded ? 0.02 : 0.015)),
       imageSize: logoSize,
     },
   });
@@ -133,19 +209,15 @@ export default function QRGeneratorPage({ standalone = false }) {
     if (!text.trim() || !isClient) return;
     setIsGenerating(true);
     try {
+      // Import dinámico: la librería usa `window`, así que solo se carga en el navegador.
       const QRCodeStyling = (await import("qr-code-styling")).default;
-      const qr = new QRCodeStyling(buildQRConfig());
+      const qr = new QRCodeStyling(buildQRConfig(qrSize));
       if (canvasRef.current) {
-        canvasRef.current.innerHTML = '';
+        canvasRef.current.innerHTML = "";
         qr.append(canvasRef.current);
-        if (logo && logoRounded) {
-          setTimeout(() => {
-            const img = canvasRef.current?.querySelector('canvas');
-          }, 100);
-        }
       }
     } catch (err) {
-      console.error("QR generation error:", err);
+      console.error("Error generando QR:", err);
     }
     setIsGenerating(false);
   };
@@ -155,52 +227,56 @@ export default function QRGeneratorPage({ standalone = false }) {
     try {
       const QRCodeStyling = (await import("qr-code-styling")).default;
 
-      const padding = frameStyle !== "none" ? 40 : 0;
-      const labelHeight = frameStyle !== "none" ? 36 : 0;
-      const totalH = qrSize + padding * 2 + labelHeight;
-      const totalW = qrSize + padding * 2;
+      // Generamos el QR directamente a alta resolución. getRawData() espera a
+      // que el logo termine de cargar, así que no hace falta ningún setTimeout.
+      const qr = new QRCodeStyling(buildQRConfig(EXPORT_SIZE));
+      const blob = await qr.getRawData("png");
+      const qrImage = await createImageBitmap(blob);
+
+      // Las medidas del marco están pensadas para la vista previa (~280px);
+      // `scale` las ajusta a la resolución de exportación.
+      const scale = EXPORT_SIZE / 280;
+      const hasFrame = frameStyle !== "none";
+      const padding = hasFrame ? Math.round(24 * scale) : 0;
+      const labelHeight = hasFrame && frameLabel ? Math.round(36 * scale) : 0;
+      const totalW = EXPORT_SIZE + padding * 2;
+      const totalH = EXPORT_SIZE + padding * 2 + labelHeight;
 
       const offCanvas = document.createElement("canvas");
       offCanvas.width = totalW;
       offCanvas.height = totalH;
       const ctx = offCanvas.getContext("2d");
 
-      if (frameStyle !== "none") {
-        const radius = frameStyle === "rounded" ? 24 : frameStyle === "badge" ? 12 : 4;
-        ctx.fillStyle = bgColor;
+      if (hasFrame) {
+        const radius = (frameStyle === "rounded" ? 24 : frameStyle === "badge" ? 12 : 4) * scale;
+        ctx.fillStyle = backColor;
         roundRect(ctx, 0, 0, totalW, totalH, radius);
         ctx.fill();
-        if (frameStyle === "badge" || frameStyle === "rounded") {
-          ctx.strokeStyle = useGradient ? gradientFrom : qrColor;
-          ctx.lineWidth = 3;
-          roundRect(ctx, 2, 2, totalW - 4, totalH - 4, radius);
-          ctx.stroke();
-        }
+        // Todos los marcos llevan borde, igual que en la vista previa.
+        const lineWidth = 3 * scale;
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = lineWidth;
+        roundRect(ctx, lineWidth / 2, lineWidth / 2, totalW - lineWidth, totalH - lineWidth, radius);
+        ctx.stroke();
       }
 
-      const tmp = document.createElement("div");
-      document.body.appendChild(tmp);
-      const qr = new QRCodeStyling(buildQRConfig());
-      qr.append(tmp);
-      await new Promise(r => setTimeout(r, 500));
-      const srcCanvas = tmp.querySelector("canvas");
-      if (srcCanvas) ctx.drawImage(srcCanvas, padding, padding, qrSize, qrSize);
-      document.body.removeChild(tmp);
+      ctx.drawImage(qrImage, padding, padding, EXPORT_SIZE, EXPORT_SIZE);
 
-      if (frameStyle !== "none" && frameLabel) {
-        ctx.fillStyle = useGradient ? gradientFrom : qrColor;
-        ctx.font = "bold 13px sans-serif";
+      if (hasFrame && frameLabel) {
+        ctx.fillStyle = accentColor;
+        ctx.font = `bold ${Math.round(14 * scale)}px sans-serif`;
         ctx.textAlign = "center";
-        ctx.letterSpacing = "2px";
-        ctx.fillText(frameLabel.toUpperCase(), totalW / 2, padding + qrSize + labelHeight / 1.5);
+        ctx.textBaseline = "middle";
+        ctx.letterSpacing = `${Math.round(2 * scale)}px`;
+        ctx.fillText(frameLabel.toUpperCase(), totalW / 2, padding + EXPORT_SIZE + labelHeight / 2);
       }
 
       const link = document.createElement("a");
-      link.download = `${customName}.png`;
+      link.download = `${customName || "qr-code"}.png`;
       link.href = offCanvas.toDataURL("image/png");
       link.click();
     } catch (err) {
-      console.error(err);
+      console.error("Error descargando QR:", err);
     }
   };
 
@@ -228,10 +304,10 @@ export default function QRGeneratorPage({ standalone = false }) {
   const frameWrapperStyle = () => {
     const base = { display: "inline-block", padding: "0" };
     if (frameStyle === "none") return base;
-    const border = `2px solid ${useGradient ? gradientFrom : qrColor}`;
-    if (frameStyle === "simple") return { ...base, border, padding: "16px" };
-    if (frameStyle === "badge") return { ...base, border, borderRadius: "12px", padding: "16px 16px 0 16px", background: bgColor };
-    if (frameStyle === "rounded") return { ...base, border, borderRadius: "24px", padding: "20px 20px 0 20px", background: bgColor };
+    const border = `2px solid ${accentColor}`;
+    if (frameStyle === "simple") return { ...base, border, padding: "16px 16px 0 16px", background: backColor };
+    if (frameStyle === "badge") return { ...base, border, borderRadius: "12px", padding: "16px 16px 0 16px", background: backColor };
+    if (frameStyle === "rounded") return { ...base, border, borderRadius: "24px", padding: "20px 20px 0 20px", background: backColor };
     return base;
   };
 
@@ -518,7 +594,7 @@ export default function QRGeneratorPage({ standalone = false }) {
             className="transition-all duration-500 flex justify-center"
             style={{
               ...frameWrapperStyle(),
-              boxShadow: frameStyle !== "none" ? `0 8px 32px ${(useGradient ? gradientFrom : qrColor)}22` : "none",
+              boxShadow: frameStyle !== "none" ? `0 8px 32px ${accentColor}22` : "none",
             }}
           >
             <div
@@ -529,7 +605,7 @@ export default function QRGeneratorPage({ standalone = false }) {
             {frameStyle !== "none" && frameLabel && (
               <div
                 className="text-center py-2 tracking-[0.15em] sm:tracking-[0.2em] text-[10px] sm:text-xs font-bold"
-                style={{ color: useGradient ? gradientFrom : qrColor }}
+                style={{ color: accentColor }}
               >
                 {frameLabel.toUpperCase()}
               </div>
@@ -553,6 +629,13 @@ export default function QRGeneratorPage({ standalone = false }) {
               </svg>
               Generando...
             </div>
+          )}
+
+          {/* Aviso si los colores elegidos pueden impedir que se escanee */}
+          {text.trim() && scanWarning && (
+            <p className="max-w-[280px] text-center text-[10px] sm:text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-2">
+              ⚠ {scanWarning}
+            </p>
           )}
         </div>
       </div>

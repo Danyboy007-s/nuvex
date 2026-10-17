@@ -3,3 +3,9 @@ node_modules/
 out/
 .DS_Store
 *.log
+
+# Generados por next-pwa en cada build
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
