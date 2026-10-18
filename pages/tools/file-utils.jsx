@@ -268,11 +268,11 @@ export default function FileUtilsPage({ standalone = false }) {
 
         {/* Información adicional */}
         <div className="bg-(--surface) rounded-xl p-4 text-center border border-(--border)">
-          <p className="text-(--text-tertiary) text-xs">Compresión local · Tus imágenes no se suben</p>
+          <p className="text-(--text-tertiary) text-xs">Consejo: para WhatsApp o correo suelen bastar 1920 px y calidad 80%.</p>
         </div>
       </div>
 
-      <p className="text-center text-(--text-tertiary) text-xs mt-8">Procesamiento local · Tus archivos no se suben</p>
+      <p className="text-center text-(--text-tertiary) text-xs mt-8">Se procesa en tu navegador · Tus archivos no se suben</p>
     </div>
   );
 

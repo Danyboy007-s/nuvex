@@ -236,7 +236,7 @@ export default function PDFConverterPage({ standalone = false }) {
             <path d="M16 17H8"/>
           </svg>
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-(--text-primary)">PDF Converter</h1>
+        <h1 className="text-3xl font-light tracking-tight text-(--text-primary)">Convertidor PDF</h1>
         <p className="text-(--text-secondary) text-sm mt-1">Convierte, combina, extrae y optimiza PDFs</p>
         <div className="w-8 h-px bg-(--border) mx-auto mt-3" />
       </div>
@@ -433,11 +433,11 @@ export default function PDFConverterPage({ standalone = false }) {
         )}
 
         <div className="bg-(--surface) rounded-xl p-4 text-center border border-(--border)">
-          <p className="text-(--text-tertiary) text-xs">Procesamiento local con pdf-lib</p>
+          <p className="text-(--text-tertiary) text-xs">Hasta 20 archivos a la vez: imágenes (JPG, PNG, WEBP...), textos TXT y PDFs.</p>
         </div>
       </div>
 
-      <p className="text-center text-(--text-tertiary) text-xs mt-8">Conversión local · Tus archivos no se suben</p>
+      <p className="text-center text-(--text-tertiary) text-xs mt-8">Se procesa en tu navegador · Tus archivos no se suben</p>
     </div>
   );
 

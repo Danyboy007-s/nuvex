@@ -197,7 +197,7 @@ export default function TextHumanizerPage({ standalone = false }) {
           </svg>
         </div>
         <h1 className="text-3xl font-light tracking-tight text-(--text-primary)">Humanizador de texto</h1>
-        <p className="text-(--text-secondary) text-sm mt-1">Hace que los textos de IA suenen como escritos por una persona</p>
+        <p className="text-(--text-secondary) text-sm mt-1">Cambia frases repetitivas y conectores robóticos para que el texto suene más natural</p>
         <div className="w-8 h-px bg-(--border) mx-auto mt-3" />
       </div>
 
@@ -297,7 +297,7 @@ export default function TextHumanizerPage({ standalone = false }) {
 
         <div className="bg-(--surface) rounded-xl p-4 text-center border border-(--border)">
           <p className="text-(--text-tertiary) text-xs">
-            Elimina frases de IA · Conectores humanos · Tono conversacional
+            Se procesa en tu navegador · Tus archivos no se suben
           </p>
         </div>
       </div>

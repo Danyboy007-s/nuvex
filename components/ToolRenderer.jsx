@@ -9,7 +9,7 @@ const LoadingPlaceholder = () => (
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z"/>
       </svg>
     </div>
-    <p className="text-(--text-secondary) text-sm font-light">cargando herramienta...</p>
+    <p className="text-(--text-secondary) text-sm font-light">Cargando herramienta…</p>
   </div>
 );
 
@@ -30,10 +30,10 @@ export default function ToolRenderer({ tool }) {
           <span className="text-base text-(--text-tertiary)">⌘</span>
         </div>
         <p className="text-(--text-secondary) text-sm font-light">
-          selecciona una herramienta
+          Elige una herramienta
         </p>
         <p className="text-[11px] text-(--text-tertiary) mt-1">
-          desde el menú de la izquierda
+          en el menú para empezar
         </p>
       </div>
     );
@@ -44,7 +44,7 @@ export default function ToolRenderer({ tool }) {
   if (!ToolComponent) {
     return (
       <div className="text-center py-20">
-        <p className="text-(--text-tertiary) text-sm">herramienta no disponible</p>
+        <p className="text-(--text-tertiary) text-sm">Esta herramienta no está disponible</p>
       </div>
     );
   }

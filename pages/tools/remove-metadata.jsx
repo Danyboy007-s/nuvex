@@ -96,7 +96,7 @@ export default function RemoveMetadataPage({ standalone = false }) {
             <circle cx="12" cy="12" r="3"/>
           </svg>
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-(--text-primary)">Eliminar metadatos EXIF</h1>
+        <h1 className="text-3xl font-light tracking-tight text-(--text-primary)">Limpiar metadatos</h1>
         <p className="text-(--text-secondary) text-sm mt-1">Limpia datos ocultos de tus imágenes (GPS, cámara, fecha)</p>
         <div className="w-8 h-px bg-(--border) mx-auto mt-3" />
       </div>
@@ -233,7 +233,7 @@ export default function RemoveMetadataPage({ standalone = false }) {
         )}
 
         <div className="bg-(--surface) rounded-xl p-4 text-center border border-(--border)">
-          <p className="text-(--text-tertiary) text-xs">Elimina GPS, cámara, fecha y otros datos ocultos</p>
+          <p className="text-(--text-tertiary) text-xs">Ideal antes de publicar o enviar fotos: nadie podrá ver dónde ni con qué celular las tomaste.</p>
         </div>
       </div>
     </div>

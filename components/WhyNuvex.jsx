@@ -4,21 +4,21 @@ import Reveal from "./Reveal";
 const POINTS = [
   {
     title: "Tus archivos no se suben",
-    text: "Todo se procesa en tu navegador. Nada pasa por un servidor.",
+    text: "Tus fotos, PDFs y textos se procesan en tu propio navegador. Nunca pasan por un servidor.",
     bg: "var(--text-primary)", fg: "var(--bg)",
     icon: <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z M9 12l2 2 4-4" />,
   },
   {
     title: "Gratis y sin cuenta",
-    text: "Sin registro, sin límites escondidos, sin marcas de agua.",
+    text: "Sin registro y sin marcas de agua. Usa las herramientas cuantas veces quieras.",
     bg: "#d4ff3a", fg: "#16161a",
     icon: <path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z" />,
   },
   {
-    title: "Funciona sin conexión",
-    text: "Instálala como app y úsala aunque no tengas internet.",
+    title: "Rápido y sin instalar nada",
+    text: "Se abre en segundos desde cualquier navegador, en tu computadora o en tu celular.",
     bg: "var(--accent)", fg: "#ffffff",
-    icon: <path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01M2 9a15 15 0 0 1 20 0" />,
+    icon: <path d="M13 2L4 14h7l-1 8 9-12h-7z" />,
   },
 ];
 

@@ -133,11 +133,11 @@ describe("POST /api/assistant", () => {
 
   it("200 con la respuesta de Gemini", async () => {
     process.env.GEMINI_API_KEY = "k";
-    global.fetch = jest.fn(async () => ({ ok: true, json: async () => geminiReply({ text: "Usa el PDF Converter.", toolIds: ["pdf-converter"] }) }));
+    global.fetch = jest.fn(async () => ({ ok: true, json: async () => geminiReply({ text: "Usa el Convertidor PDF.", toolIds: ["pdf-converter"] }) }));
     const res = mockRes();
     await handler(post({ messages: [{ from: "user", text: "unir pdf" }] }, "3.3.3.3"), res);
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ text: "Usa el PDF Converter.", toolIds: ["pdf-converter"], source: "gemini" });
+    expect(res.body).toEqual({ text: "Usa el Convertidor PDF.", toolIds: ["pdf-converter"], source: "gemini" });
   });
 
   it("502 (sin detalles internos) si Gemini falla", async () => {

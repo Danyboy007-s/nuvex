@@ -245,7 +245,7 @@ Si cambias el logo, actualiza el SVG **y** el polígono del script.
 
 ## Despliegue
 
-El sitio está en **Vercel**: **https://nuvex-beta.vercel.app**
+El sitio está en **Vercel**: **https://nuvex-tools.vercel.app**. La dirección anterior, `nuvex-beta.vercel.app`, redirige a la nueva.
 
 - **Despliegue automático:** cada `git push` a `main` publica una versión nueva. Vercel detecta Next.js solo, sin configuración extra.
 - **Ramas de prueba:** las demás ramas generan una vista previa con su propia URL. Así se puede revisar un cambio antes de unirlo a `main`.
@@ -255,7 +255,7 @@ El sitio está en **Vercel**: **https://nuvex-beta.vercel.app**
 
 ### Dominio y SEO
 
-- **Dominio actual:** `https://nuvex-beta.vercel.app`, definido en `lib/site.js`.
+- **Dominio actual:** `https://nuvex-tools.vercel.app`, definido en `lib/site.js`.
   - Para cambiarlo sin tocar código, define la variable de entorno `NEXT_PUBLIC_SITE_URL` en Vercel (Settings → Environment Variables) (por ejemplo `https://midominio.com`).
   - Afecta el canonical, la imagen para redes, el sitemap y `robots.txt`.
 - **Cada página tiene su propio título, descripción, canonical y vista previa para redes** (`components/Layout.jsx`).
@@ -299,9 +299,29 @@ El sitio está en **Vercel**: **https://nuvex-beta.vercel.app**
 - [ ] Dar de baja el proyecto de Cloudflare Pages (después de comprobar Vercel).
 - [x] Integrar IA con una ruta `/api` en el servidor (Gemini, `GEMINI_API_KEY` en Vercel).
 - [ ] Nuvex IA: que pueda trabajar con los archivos (por ejemplo, comprimir una foto desde el chat).
-- [ ] Eliminar fondo con IA real (por ejemplo `@imgly/background-removal`, que corre en el navegador).
+- [ ] Nuvex IA: responder también preguntas generales (hoy se limita a Nuvex a propósito). Implica:
+  - relajar la regla en `SYSTEM_PROMPT` (`lib/assistantAi.js`);
+  - subir `maxOutputTokens`;
+  - mostrar código y texto con formato en `AssistantChat.jsx`;
+  - vigilar la cuota gratuita de Gemini.
+- [ ] Eliminar fondo con IA real, con un modelo que corra **en el navegador**. No con Gemini: habría que subir la foto a Google y no da transparencia real.
+  - **Licencia:** elegir una MIT o Apache. `@imgly/background-removal` es AGPL (obligaría a publicar el código de Nuvex bajo AGPL) y RMBG de BRIA no permite uso comercial.
+  - El modo actual de color uniforme se queda como modo rápido para logos.
 
 ## Registro de cambios
+
+### 2026-10-18 (dominio)
+- **Dominio nuevo:** https://nuvex-tools.vercel.app. `nuvex-beta.vercel.app` redirige ahí. Se actualizó `lib/site.js` (canonical, sitemap, robots e imagen para redes).
+
+### 2026-10-18 (textos)
+- **Textos revisados** para que sean claros y no prometan de más:
+  - "Funciona sin conexión" pasa a ser "Rápido y sin instalar nada".
+  - "Sin límites escondidos" pasa a ser "Usa las herramientas cuantas veces quieras".
+  - Se quitaron "beta" del pie de página, "Beta" de Eliminar fondo y la etiqueta "NUVEX" del QR.
+  - "0 registros" pasa a ser "Sin registro".
+- **Nombres en español:** "PDF Converter" es ahora "Convertidor PDF"; "Humanizar" es "Humanizar texto"; "Eliminar metadatos EXIF" es "Limpiar metadatos".
+- **Pie de página igual en todas las herramientas** ("Se procesa en tu navegador · Tus archivos no se suben"), y consejos útiles en lugar de detalles técnicos (pdf-lib, R12...).
+- La descripción del Humanizador ya no promete que el texto "parezca escrito por una persona": hoy funciona por reglas.
 
 ### 2026-10-18 (Nuvex IA con Gemini)
 - **Nuvex IA ahora conversa con Gemini**:

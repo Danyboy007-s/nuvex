@@ -17,7 +17,7 @@ describe('AssistantChat', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Preguntar' }));
 
     expect(screen.getByText('quiero unir dos pdf')).toBeInTheDocument();
-    const link = await screen.findByRole('link', { name: /PDF Converter/ });
+    const link = await screen.findByRole('link', { name: /Convertidor PDF/ });
     expect(link).toHaveAttribute('href', '/tools?tool=pdf-converter');
 
     const [url, options] = global.fetch.mock.calls[0];

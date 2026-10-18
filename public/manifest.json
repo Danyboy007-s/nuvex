@@ -1,7 +1,7 @@
 {
   "name": "Nuvex",
   "short_name": "Nuvex",
-  "description": "Herramientas de conversión locales, silenciosas y sin complicaciones.",
+  "description": "Herramientas gratis para PDF, fotos, textos y códigos QR. Todo en tu navegador, sin registro.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

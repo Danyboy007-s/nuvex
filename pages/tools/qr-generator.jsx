@@ -318,11 +318,8 @@ export default function QRGeneratorPage({ standalone = false }) {
     <div className="max-w-4xl mx-auto px-4 sm:px-6">
       {/* Header - responsive */}
       <div className="text-center mb-6 sm:mb-8">
-        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-(--surface) border border-(--border) mb-3 sm:mb-4">
-          <span className="text-[10px] sm:text-xs text-(--text-tertiary) tracking-widest uppercase">NUVEX</span>
-        </div>
         <h1 className="text-3xl sm:text-4xl font-light tracking-tight text-(--text-primary)">Generador QR</h1>
-        <p className="text-(--text-secondary) text-xs sm:text-sm mt-1 sm:mt-2 px-4">Códigos QR con gradientes, marcos y estilos personalizados</p>
+        <p className="text-(--text-secondary) text-xs sm:text-sm mt-1 sm:mt-2 px-4">Crea códigos QR con tu logo, colores y marcos, listos para imprimir</p>
       </div>
 
       {/* Grid responsive: columna en móvil, dos columnas en desktop */}

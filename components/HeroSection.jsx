@@ -38,7 +38,7 @@ export default function HeroSection() {
           </Link>
           <div className="flex gap-4 text-sm text-(--text-secondary)">
             <span><strong className="text-(--text-primary)">{toolCount}</strong> herramientas</span>
-            <span><strong className="text-(--text-primary)">0</strong> registros</span>
+            <span><strong className="text-(--text-primary)">Sin</strong> registro</span>
           </div>
         </div>
       </div>

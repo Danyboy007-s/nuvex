@@ -173,12 +173,9 @@ export default function RemoveBgPage({ standalone = false }) {
   const content = (
     <div className="max-w-4xl mx-auto px-4 sm:px-6">
       <div className="text-center mb-6 sm:mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-(--surface) border border-(--border) mb-3">
-          <span className="text-xs text-(--text-tertiary) tracking-wider uppercase">Beta</span>
-        </div>
         <h1 className="text-3xl sm:text-4xl font-light tracking-tight text-(--text-primary)">Eliminar fondo</h1>
         <p className="text-(--text-secondary) text-sm mt-2 max-w-md mx-auto">
-          Perfecto para fondos de color plano o uniforme
+          Para logos, productos y fondos de un solo color. Descarga un PNG transparente.
         </p>
       </div>
 
@@ -407,7 +404,7 @@ export default function RemoveBgPage({ standalone = false }) {
 
       <div className="mt-8 text-center">
         <p className="text-[10px] text-(--text-tertiary) opacity-60">
-          Fondo transparente · Procesamiento local
+          Se procesa en tu navegador · Tus archivos no se suben
         </p>
       </div>
 

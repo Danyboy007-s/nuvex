@@ -15,7 +15,7 @@ export default function Footer() {
           <Link href="/tools?tool=assistant" className="hover:text-(--text-primary) transition-colors">Nuvex IA</Link>
         </nav>
         <p className="text-xs text-(--text-tertiary)">
-          © {currentYear} Nuvex · <span className="font-mono">beta</span>
+          © {currentYear} Nuvex
         </p>
       </div>
     </footer>

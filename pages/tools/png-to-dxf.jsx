@@ -244,11 +244,11 @@ export default function PngToDxfPage({ standalone = false }) {
         )}
 
         <div className="bg-(--surface) rounded-xl p-4 text-center border border-(--border)">
-          <p className="text-(--text-tertiary) text-xs">Vectorización local · Polilíneas cerradas DXF (R12): AutoCAD, LibreCAD, Inkscape, láser y CNC</p>
+          <p className="text-(--text-tertiary) text-xs">Funciona mejor con logos, siluetas y dibujos con buen contraste. Compatible con AutoCAD, LibreCAD, Inkscape y máquinas de corte láser o CNC.</p>
         </div>
       </div>
 
-      <p className="text-center text-(--text-tertiary) text-xs mt-8">Procesamiento local · Tus imágenes no se suben</p>
+      <p className="text-center text-(--text-tertiary) text-xs mt-8">Se procesa en tu navegador · Tus archivos no se suben</p>
     </div>
   );
 
