@@ -208,17 +208,17 @@ Si cambias el logo, actualiza el SVG **y** el polígono del script.
 
 ## Despliegue
 
-Hoy el sitio está en **Cloudflare Pages**. Para desplegarlo:
+El sitio está en **Vercel**: **https://nuvex-beta.vercel.app**
 
-- Comando de build: `npm run build`
-- Carpeta de salida: `out`
-
-Está pendiente la migración a Vercel (ver Pendientes).
+- **Despliegue automático:** cada `git push` a `main` publica una versión nueva. Vercel detecta Next.js solo, sin configuración extra.
+- **Ramas de prueba:** las demás ramas generan una vista previa con su propia URL. Así se puede revisar un cambio antes de unirlo a `main`.
+- **Compilación:** usa `npm run build`, que antes genera el sitemap (`prebuild`) y deja el sitio estático en `out/`.
+- **Historial:** hasta octubre de 2026 el sitio estuvo en Cloudflare Pages (`nuvex-5d7.pages.dev`).
 
 ### Dominio y SEO
 
-- **Dominio actual:** `https://nuvex-5d7.pages.dev`, definido en `lib/site.js`.
-  - Para cambiarlo sin tocar código, define la variable de entorno `NEXT_PUBLIC_SITE_URL` en Cloudflare o Vercel (por ejemplo `https://midominio.com`).
+- **Dominio actual:** `https://nuvex-beta.vercel.app`, definido en `lib/site.js`.
+  - Para cambiarlo sin tocar código, define la variable de entorno `NEXT_PUBLIC_SITE_URL` en Vercel (Settings → Environment Variables) (por ejemplo `https://midominio.com`).
   - Afecta el canonical, la imagen para redes, el sitemap y `robots.txt`.
 - **Cada página tiene su propio título, descripción, canonical y vista previa para redes** (`components/Layout.jsx`).
   - Los textos de cada herramienta están en `lib/tools.js` (`seoTitle`, `seoDescription`).
@@ -249,11 +249,15 @@ Está pendiente la migración a Vercel (ver Pendientes).
 - [ ] Actualizaciones mayores disponibles (React 19, Next 16, Tailwind 4, Jest 30); no urgen.
 - [ ] Agregar configuración de ESLint.
 - [x] Confirmar el dominio que usan `sitemap.xml`, `robots.txt` y el canonical (`nuvex.app`).
-- [ ] Migrar a Vercel.
+- [x] Migrar a Vercel (https://nuvex-beta.vercel.app).
+- [ ] Dar de baja el proyecto de Cloudflare Pages (después de comprobar Vercel).
 - [ ] Integrar IA con una ruta `/api` en el servidor (la clave de la API nunca debe ir en el navegador). La interfaz ya existe: solo hay que cambiar `answer()` en `lib/assistant.js`.
 - [ ] Eliminar fondo con IA real (por ejemplo `@imgly/background-removal`, que corre en el navegador).
 
 ## Registro de cambios
+
+### 2026-10-17 (Vercel)
+- **El sitio se mudó a Vercel:** https://nuvex-beta.vercel.app. El dominio en `lib/site.js` (canonical, sitemap, imagen para redes) ahora apunta ahí.
 
 ### 2026-10-17 (rediseño + Nuvex IA)
 - **Rediseño completo**:

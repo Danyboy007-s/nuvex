@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 
 // lib/*.js usa `export` pero el proyecto no es "type": "module" (Next y Jest
 // esperan CommonJS en sus configs). Node 22 lo detecta solo, pero versiones
-// anteriores (las que puede usar Cloudflare o Vercel para compilar) fallarían.
+// anteriores (las que puede usar Vercel u otro servicio para compilar) fallarían.
 // Cargarlos como data: URL los fuerza a ES module en cualquier versión.
 // Funciona porque estos dos archivos no importan otros módulos.
 const loadEsm = (rel) =>

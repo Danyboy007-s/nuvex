@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://nuvex-5d7.pages.dev/sitemap.xml
+Sitemap: https://nuvex-beta.vercel.app/sitemap.xml

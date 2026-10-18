@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://nuvex-5d7.pages.dev/</loc></url>
-  <url><loc>https://nuvex-5d7.pages.dev/tools</loc></url>
-  <url><loc>https://nuvex-5d7.pages.dev/tools/assistant</loc></url>
-  <url><loc>https://nuvex-5d7.pages.dev/tools/pdf-converter</loc></url>
-  <url><loc>https://nuvex-5d7.pages.dev/tools/file-utils</loc></url>
-  <url><loc>https://nuvex-5d7.pages.dev/tools/remove-metadata</loc></url>
-  <url><loc>https://nuvex-5d7.pages.dev/tools/remove-bg</loc></url>
-  <url><loc>https://nuvex-5d7.pages.dev/tools/png-to-dxf</loc></url>
-  <url><loc>https://nuvex-5d7.pages.dev/tools/text-humanizer</loc></url>
-  <url><loc>https://nuvex-5d7.pages.dev/tools/qr-generator</loc></url>
+  <url><loc>https://nuvex-beta.vercel.app/</loc></url>
+  <url><loc>https://nuvex-beta.vercel.app/tools</loc></url>
+  <url><loc>https://nuvex-beta.vercel.app/tools/assistant</loc></url>
+  <url><loc>https://nuvex-beta.vercel.app/tools/pdf-converter</loc></url>
+  <url><loc>https://nuvex-beta.vercel.app/tools/file-utils</loc></url>
+  <url><loc>https://nuvex-beta.vercel.app/tools/remove-metadata</loc></url>
+  <url><loc>https://nuvex-beta.vercel.app/tools/remove-bg</loc></url>
+  <url><loc>https://nuvex-beta.vercel.app/tools/png-to-dxf</loc></url>
+  <url><loc>https://nuvex-beta.vercel.app/tools/text-humanizer</loc></url>
+  <url><loc>https://nuvex-beta.vercel.app/tools/qr-generator</loc></url>
 </urlset>
