@@ -2,14 +2,15 @@ import { render, screen } from '@testing-library/react';
 import HeroSection from '../../components/HeroSection';
 
 describe('HeroSection', () => {
-  it('debe mostrar el título Nuvex', () => {
+  it('muestra el titular y el enlace a las herramientas', () => {
     render(<HeroSection />);
-    expect(screen.getByText('Nuvex')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/Pídelo\.\s*Nuvex lo resuelve\./);
+    expect(screen.getByRole('link', { name: /Ver herramientas/ })).toHaveAttribute('href', '/tools');
   });
 
-  it('debe mostrar el botón ver herramientas', () => {
+  it('incluye Nuvex IA, lo más destacado de la portada', () => {
     render(<HeroSection />);
-    // El botón tiene "ver herramientas" y luego una flecha aparte
-    expect(screen.getByText('ver herramientas')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Nuvex IA' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Preguntar' })).toBeInTheDocument();
   });
 });

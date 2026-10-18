@@ -88,6 +88,32 @@ La lógica está en `lib/pdf.js` (con tests en `__tests__/lib/pdf.test.js`); la 
 
 ---
 
+## Diseño
+
+El sistema de diseño está en `styles/globals.css` (comentado al principio).
+
+- **Colores sólidos, sin degradados.**
+  - Fondo papel cálido (`--bg`) y tinta oscura (`--text-primary`).
+  - Modo oscuro con las mismas variables.
+- **Azul (`--accent`) = herramientas; violeta (`--ai`) = Nuvex IA**, y solo la IA. Así lo de IA siempre destaca.
+  - El lima `#d4ff3a` es el color de acento para resaltar.
+- **Cada herramienta tiene su color** en `components/toolVisuals.jsx`: ícono blanco sobre cuadro de color.
+- **Animaciones suaves**, todas desactivadas con "reducir movimiento":
+  - `.lift`: la tarjeta se eleva con sombra al pasar el mouse.
+  - `.rise-in`: entrada de la portada, sin esperar a JavaScript.
+  - `.reveal` con `Reveal.jsx`: aparición al hacer scroll.
+  - `.orb-*`: el orbe de la IA "respira".
+  - `.message-in` y `.typing-dot`: mensajes del chat.
+
+### Nuvex IA
+
+- **Dónde aparece:** es lo primero de la portada y del menú de `/tools`, y tiene su propia URL, `/tools/assistant`.
+- **Qué hace hoy:** es una versión **local**. `lib/assistant.js` reconoce pedidos por palabras clave y sugiere la herramienta indicada.
+  - No envía nada a internet.
+  - La interfaz lo dice ("Beta").
+- **Para conectar una IA real:** reemplaza `answer()` por una llamada a una ruta `/api` del servidor que devuelva el mismo formato, `{ text, toolIds }`. La interfaz no cambia.
+- **Lo marcado "Próximamente"** en la portada (`AiRoadmap.jsx`) todavía no existe.
+
 ## Tecnología
 
 - **Next.js 15.5** (Pages Router) y **React 18**. Todavía no se usa Next 16 porque compila con Turbopack, y el plugin de PWA necesita webpack.
@@ -101,10 +127,15 @@ La lógica está en `lib/pdf.js` (con tests en `__tests__/lib/pdf.test.js`); la 
 ```
 nuvex/
 ├── components/          # Piezas de interfaz reutilizables
-│   ├── Layout.jsx         # Envoltorio común: <head>, reloj y botón de tema
-│   ├── HeroSection.jsx    # Portada de la página de inicio
-│   ├── FeaturedTools.jsx  # Tarjetas de herramientas en el inicio
-│   ├── WhyNuvex.jsx       # Bloque de texto del inicio
+│   ├── Layout.jsx         # Envoltorio común: <head>/SEO, encabezado y botón de tema
+│   ├── HeroSection.jsx    # Portada: titular + Nuvex IA
+│   ├── AssistantChat.jsx  # Interfaz de Nuvex IA (portada y /tools)
+│   ├── AiOrb.jsx          # Símbolo animado de la IA
+│   ├── FeaturedTools.jsx  # Cuadrícula de herramientas del inicio
+│   ├── AiRoadmap.jsx      # Bloque violeta: qué hace la IA hoy y qué viene
+│   ├── WhyNuvex.jsx       # Tres bloques "por qué Nuvex"
+│   ├── Reveal.jsx         # Aparición suave al hacer scroll
+│   ├── toolVisuals.jsx    # Ícono y color de cada herramienta
 │   ├── Footer.jsx
 │   ├── ToolSidebar.jsx    # Menú lateral de /tools (lista de herramientas)
 │   └── ToolRenderer.jsx   # Carga dinámicamente la herramienta elegida
@@ -116,6 +147,7 @@ nuvex/
 │   └── tools/             # Una herramienta por archivo (ver tabla)
 ├── lib/                 # Lógica sin interfaz, fácil de probar
 │   ├── tools.js           # Registro único de herramientas (menú, carga y textos SEO)
+│   ├── assistant.js       # Respuestas de Nuvex IA (hoy local, por palabras clave)
 │   ├── site.js            # Dominio, título y descripción del sitio (SEO)
 │   ├── pdf.js             # Lógica del PDF Converter
 │   ├── image.js           # Compresor y Eliminar fondo
@@ -218,10 +250,23 @@ Está pendiente la migración a Vercel (ver Pendientes).
 - [ ] Agregar configuración de ESLint.
 - [x] Confirmar el dominio que usan `sitemap.xml`, `robots.txt` y el canonical (`nuvex.app`).
 - [ ] Migrar a Vercel.
-- [ ] Integrar IA con una ruta `/api` en el servidor (la clave de la API nunca debe ir en el navegador).
+- [ ] Integrar IA con una ruta `/api` en el servidor (la clave de la API nunca debe ir en el navegador). La interfaz ya existe: solo hay que cambiar `answer()` en `lib/assistant.js`.
 - [ ] Eliminar fondo con IA real (por ejemplo `@imgly/background-removal`, que corre en el navegador).
 
 ## Registro de cambios
+
+### 2026-10-17 (rediseño + Nuvex IA)
+- **Rediseño completo**:
+  - Colores sólidos sin degradados: fondo papel y tinta, con modo oscuro.
+  - Sombras y animaciones suaves.
+  - Encabezado nuevo con acceso directo a la IA; se quitó el reloj.
+  - Cuadrícula de herramientas con un color por herramienta.
+  - Bloques "por qué Nuvex" y página 404 nueva.
+- **Nuvex IA**, lo más destacado del sitio:
+  - Asistente en la portada (tarjeta oscura con orbe animado) y primero en el menú de `/tools`.
+  - Por ahora responde con palabras clave y lleva a la herramienta correcta; está listo para conectar una IA real.
+- `/tools` reacciona a cambios de `?tool=`: abrir una herramienta desde la IA cambia el panel.
+- Tests nuevos: `assistant.test.js` y `AssistantChat.test.jsx`; se actualizaron los de la portada y el pie.
 
 ### 2026-10-17 (DXF y PDF)
 - **PNG/JPG a DXF reescrito** (`lib/dxf.js`). La versión anterior tenía varios problemas:

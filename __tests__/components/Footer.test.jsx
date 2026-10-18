@@ -2,10 +2,10 @@ import { render, screen } from '@testing-library/react';
 import Footer from '../../components/Footer';
 
 describe('Footer', () => {
-  it('debe mostrar el año actual y el nombre Nuvex', () => {
+  it('muestra el año actual y los enlaces principales', () => {
     render(<Footer />);
-    const currentYear = new Date().getFullYear();
-    expect(screen.getByText(new RegExp(currentYear.toString()))).toBeInTheDocument();
-    expect(screen.getByText(/Nuvex/i)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`© ${new Date().getFullYear()} Nuvex`))).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Herramientas' })).toHaveAttribute('href', '/tools');
+    expect(screen.getByRole('link', { name: 'Nuvex IA' })).toHaveAttribute('href', '/tools?tool=assistant');
   });
 });

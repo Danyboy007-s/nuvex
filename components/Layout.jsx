@@ -7,8 +7,9 @@ import { SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, OG_IMAGE, absoluteUrl } 
 //   title / description → lo que muestra Google en los resultados
 //   path                → URL canónica de la página (evita contenido duplicado)
 //   appName             → solo en páginas de herramienta: agrega datos
-//                         estructurados (JSON-LD) y un enlace de vuelta al inicio
+//                         estructurados (JSON-LD) y márgenes propios
 //   noindex             → para páginas que no deben aparecer en Google (404)
+//   wide                → encabezado a todo el ancho (panel /tools)
 export default function Layout({
   children,
   title = DEFAULT_TITLE,
@@ -16,6 +17,7 @@ export default function Layout({
   path = "/",
   appName = null,
   noindex = false,
+  wide = false, // encabezado a todo el ancho (panel /tools, alineado con el menú lateral)
 }) {
   const url = absoluteUrl(path);
   const image = absoluteUrl(OG_IMAGE);
@@ -31,7 +33,6 @@ export default function Layout({
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   };
 
-  const [time, setTime] = useState("");
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -43,17 +44,6 @@ export default function Layout({
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, []);
-
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const formatted = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-      setTime(formatted);
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 60000);
-    return () => clearInterval(interval);
   }, []);
 
   const toggleTheme = () => {
@@ -97,46 +87,56 @@ export default function Layout({
         )}
       </Head>
       <main className="relative min-h-screen flex flex-col bg-[var(--bg)] transition-colors duration-300">
-        
-        {/* En la página propia de una herramienta (a la que se llega desde
-            Google) no hay menú: este enlace permite ir al resto del sitio. */}
-        {appName && (
-          <Link
-            href="/"
-            className="fixed top-5 left-5 z-50 inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-[var(--surface)] border border-[var(--border)] text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            Nuvex
-          </Link>
-        )}
+        {/* Encabezado fijo arriba en todas las páginas. La IA tiene su propio
+            botón violeta para que siempre esté a un clic. */}
+        <header className="sticky top-0 z-30 h-16 bg-[var(--bg)] border-b border-[var(--border)]">
+          <div className={`h-full flex items-center gap-3 px-4 sm:px-6 ${wide ? "" : "max-w-6xl mx-auto"}`}>
+            <Link href="/" className="flex items-center gap-2.5 mr-auto group" aria-label="Nuvex, inicio">
+              <svg className="w-8 h-8 transition-transform duration-300 group-hover:-rotate-6" viewBox="0 0 512 512" aria-hidden="true">
+                <rect width="512" height="512" rx="112" fill="#007aff" />
+                <path d="M152 372V140h40l128 166V140h40v232h-40L192 206v166z" fill="#fff" />
+              </svg>
+              <span className="text-lg font-semibold tracking-tight">Nuvex</span>
+            </Link>
 
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-3">
-          <div className="text-sm font-medium text-[var(--text-secondary)] tracking-wide tabular-nums">
-            {time}
+            <Link
+              href="/tools"
+              className="hidden sm:inline-flex h-9 items-center px-3.5 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors"
+            >
+              Herramientas
+            </Link>
+            <Link
+              href="/tools?tool=assistant"
+              className="lift inline-flex h-9 items-center gap-2 px-3.5 rounded-xl text-sm font-semibold text-white"
+              style={{ background: "var(--ai)" }}
+            >
+              <span className="relative flex w-2 h-2">
+                <span className="absolute inset-0 rounded-full bg-[#d4ff3a] orb-core" />
+              </span>
+              Nuvex IA
+            </Link>
+            <button
+              onClick={toggleTheme}
+              className="w-9 h-9 rounded-xl border border-[var(--border)] bg-[var(--surface)] flex items-center justify-center transition-all hover:-translate-y-px hover:shadow-[var(--shadow-md)]"
+              aria-label="Cambiar tema"
+            >
+              {isDark ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="4"/>
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/>
+                </svg>
+              )}
+            </button>
           </div>
-          <button
-            onClick={toggleTheme}
-            className="w-8 h-8 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-            aria-label="Cambiar tema"
-          >
-            {isDark ? (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="4"/>
-                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-              </svg>
-            ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/>
-              </svg>
-            )}
-          </button>
-        </div>
-        
-        {/* Las páginas de herramienta sueltas necesitan margen propio (dentro de
-            /tools se lo da el panel) y espacio arriba para el enlace y el reloj. */}
-        <div className={`relative z-10 flex-1 ${appName ? "px-4 sm:px-6 pt-20 pb-12" : ""}`}>
+        </header>
+
+        {/* Las páginas de herramienta sueltas (a las que se llega desde Google)
+            necesitan margen propio; dentro de /tools se lo da el panel. */}
+        <div className={`relative flex-1 ${appName ? "px-4 sm:px-6 pt-10 pb-16" : ""}`}>
           {children}
         </div>
       </main>

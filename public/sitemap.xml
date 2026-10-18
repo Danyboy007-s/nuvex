@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://nuvex-5d7.pages.dev/</loc></url>
   <url><loc>https://nuvex-5d7.pages.dev/tools</loc></url>
+  <url><loc>https://nuvex-5d7.pages.dev/tools/assistant</loc></url>
   <url><loc>https://nuvex-5d7.pages.dev/tools/pdf-converter</loc></url>
   <url><loc>https://nuvex-5d7.pages.dev/tools/file-utils</loc></url>
   <url><loc>https://nuvex-5d7.pages.dev/tools/remove-metadata</loc></url>

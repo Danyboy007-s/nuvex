@@ -1,192 +1,121 @@
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { TOOL_CATEGORIES, prefetchTool } from "../lib/tools";
+import { ToolBadge } from "./toolVisuals";
 
-// Ícono de cada categoría del registro (lib/tools.js), por nombre.
-const CATEGORY_ICONS = {
-  "Conversión": (
-    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <rect width="7" height="7" x="3" y="3" rx="1"/>
-      <rect width="7" height="7" x="14" y="3" rx="1"/>
-      <rect width="7" height="7" x="14" y="14" rx="1"/>
-      <rect width="7" height="7" x="3" y="14" rx="1"/>
-    </svg>
-  ),
-  "Imagen": (
-    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-      <circle cx="9" cy="9" r="2"/>
-      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-    </svg>
-  ),
-  "Texto y códigos": (
-    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path d="M17 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1"/>
-      <path d="M7 22h1a4 4 0 0 0 4-4"/>
-      <path d="M7 2h1a4 4 0 0 1 4 4"/>
-    </svg>
-  ),
-};
-
+// Menú lateral de /tools. En escritorio queda fijo debajo del encabezado
+// (top-16) y se puede contraer a solo íconos; en celular es un panel que se
+// abre con el botón de abajo a la derecha. Nuvex IA va primero, en violeta.
 export default function ToolSidebar({ selectedToolId, onSelectTool }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('nuvex-sidebar-collapsed');
-    if (saved !== null) {
-      setSidebarCollapsed(saved === 'true');
-    }
+    const saved = localStorage.getItem("nuvex-sidebar-collapsed");
+    if (saved !== null) setCollapsed(saved === "true");
   }, []);
 
-  const toggleSidebar = () => {
-    const newState = !sidebarCollapsed;
-    setSidebarCollapsed(newState);
-    localStorage.setItem('nuvex-sidebar-collapsed', newState);
+  useEffect(() => {
+    const onResize = () => { if (window.innerWidth >= 768) setMobileOpen(false); };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const toggleCollapsed = () => {
+    setCollapsed((c) => {
+      localStorage.setItem("nuvex-sidebar-collapsed", String(!c));
+      return !c;
+    });
   };
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) setMobileOpen(false);
-      if (window.innerWidth < 1024 && !sidebarCollapsed) {
-        setSidebarCollapsed(true);
-        localStorage.setItem('nuvex-sidebar-collapsed', 'true');
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [sidebarCollapsed]);
+  // En celular el menú siempre se muestra completo.
+  const compact = collapsed && !mobileOpen;
 
   return (
     <>
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="md:hidden fixed bottom-5 right-5 z-50 w-10 h-10 rounded-full bg-[var(--surface)] border border-[var(--border)] shadow-md flex items-center justify-center"
+        className="md:hidden fixed bottom-5 right-5 z-50 w-12 h-12 rounded-2xl flex items-center justify-center"
+        style={{ background: "var(--text-primary)", boxShadow: "var(--shadow-lg)" }}
+        aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú de herramientas"}
       >
-        {mobileOpen ? (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path d="M18 6L6 18M6 6l12 12"/>
-          </svg>
-        ) : (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path d="M4 5h16M4 12h16M4 19h16"/>
-          </svg>
-        )}
+        <svg className="w-5 h-5" fill="none" stroke="var(--bg)" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+          {mobileOpen ? <path d="M18 6L6 18M6 6l12 12" /> : <path d="M4 6h16M4 12h16M4 18h10" />}
+        </svg>
       </button>
 
-      <aside className={`
-        fixed md:sticky top-0 left-0 z-40 h-screen shrink-0
-        transition-all duration-300 ease-out
-        bg-[var(--surface)]/95
-        backdrop-blur-sm
-        border-r border-[var(--border)]
-        overflow-y-auto
-        flex flex-col
-        ${sidebarCollapsed ? 'w-12' : 'w-64'}
-        ${mobileOpen ? 'translate-x-0 shadow-lg' : '-translate-x-full md:translate-x-0'}
-      `}>
-        {sidebarCollapsed ? (
-          <div className="py-4 flex flex-col items-center gap-4">
+      <aside
+        className={`
+          fixed md:sticky top-0 md:top-16 left-0 z-40 h-screen md:h-[calc(100vh-4rem)] shrink-0
+          bg-[var(--bg)] border-r border-[var(--border)] overflow-y-auto
+          transition-all duration-300 ease-out
+          ${compact ? "md:w-[76px]" : "w-72"}
+          ${mobileOpen ? "translate-x-0 shadow-[var(--shadow-lg)]" : "-translate-x-full md:translate-x-0"}
+        `}
+      >
+        <div className={`py-6 ${compact ? "px-3" : "px-4"} flex flex-col gap-6 min-h-full`}>
+          <div className={`flex items-center ${compact ? "justify-center" : "justify-between px-2"}`}>
+            {!compact && <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">Herramientas</p>}
             <button
-              onClick={toggleSidebar}
-              className="p-2 rounded-lg hover:bg-[var(--surface-hover)] transition-colors"
-              title="Expandir menú"
+              onClick={toggleCollapsed}
+              className="hidden md:flex w-8 h-8 rounded-lg items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors"
+              title={compact ? "Expandir menú" : "Contraer menú"}
             >
-              <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              <svg className={`w-4 h-4 transition-transform duration-300 ${compact ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                <path d="M11 19l-7-7 7-7M19 19l-7-7 7-7" />
               </svg>
             </button>
-            <div className="w-6 h-px bg-[var(--border)]" />
-            {TOOL_CATEGORIES.map((category) => (
-              <div key={category.name} className="group relative">
-                <div className="p-2">
-                  {CATEGORY_ICONS[category.name]}
-                </div>
-                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-[var(--surface)] border border-[var(--border)] rounded-lg text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  {category.name}
-                </div>
-              </div>
-            ))}
           </div>
-        ) : (
-          <div className="py-6 px-4 flex-1 flex flex-col">
-            <div className="mb-8">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-[10px] tracking-wider text-[var(--text-tertiary)] uppercase mb-1">
-                    Herramientas
-                  </p>
-                  <p className="text-[11px] text-[var(--text-tertiary)]">
-                    NUVEX
-                  </p>
-                </div>
-                <button
-                  onClick={toggleSidebar}
-                  className="p-1 rounded-lg hover:bg-[var(--surface-hover)] transition-colors"
-                  title="Ocultar menú"
-                >
-                  <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7M19 19l-7-7 7-7" />
-                  </svg>
-                </button>
+
+          {TOOL_CATEGORIES.map((category) => (
+            <div key={category.name}>
+              {!compact && category.name !== "IA" && (
+                <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{category.name}</p>
+              )}
+              <div className="space-y-1">
+                {category.tools.map((tool) => {
+                  const active = selectedToolId === tool.id;
+                  const aiCard = tool.id === "assistant" && !compact; // tarjeta violeta completa
+                  return (
+                    <button
+                      key={tool.id}
+                      onClick={() => { onSelectTool(tool); setMobileOpen(false); }}
+                      // Precarga el código al pasar el mouse o enfocar con teclado.
+                      onMouseEnter={() => prefetchTool(tool.id)}
+                      onFocus={() => prefetchTool(tool.id)}
+                      title={compact ? tool.name : undefined}
+                      className={`w-full flex items-center gap-3 rounded-2xl text-left transition-all duration-200
+                        ${compact ? "justify-center p-2" : "p-2 pr-3"}
+                        ${aiCard
+                          ? `text-white hover:-translate-y-px ${active ? "ring-2 ring-offset-2 ring-offset-[var(--bg)] ring-[var(--ai)]" : ""}`
+                          : active
+                            ? "bg-[var(--surface)] shadow-[var(--shadow-md)]"
+                            : "hover:bg-[var(--surface-hover)]"}`}
+                      style={aiCard ? { background: "var(--ai)", boxShadow: "var(--shadow-ai)" } : undefined}
+                    >
+                      <ToolBadge id={tool.id} size={compact ? "md" : "sm"} background={aiCard ? "rgba(255,255,255,0.2)" : undefined} />
+                      {!compact && (
+                        <span className="min-w-0">
+                          <span className="block text-sm font-semibold truncate">{tool.name}</span>
+                          <span className={`block text-xs truncate ${aiCard ? "text-white/75" : "text-[var(--text-tertiary)]"}`}>{tool.desc}</span>
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
+          ))}
 
-            <div className="space-y-6 flex-1">
-              {TOOL_CATEGORIES.map((category) => (
-                <div key={category.name}>
-                  <div className="flex items-center gap-1.5 mb-2 px-2">
-                    {CATEGORY_ICONS[category.name]}
-                    <h3 className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
-                      {category.name}
-                    </h3>
-                  </div>
-                  <div className="space-y-0.5">
-                    {category.tools.map((tool) => (
-                      <button
-                        key={tool.id}
-                        onClick={() => { onSelectTool(tool); setMobileOpen(false); }}
-                        // Precarga el código al pasar el mouse o enfocar con teclado.
-                        onMouseEnter={() => prefetchTool(tool.id)}
-                        onFocus={() => prefetchTool(tool.id)}
-                        className={`
-                          group w-full text-left px-3 py-2 rounded-xl text-sm
-                          transition-all duration-150
-                          ${selectedToolId === tool.id 
-                            ? 'bg-[var(--bg)] text-[var(--text-primary)] font-medium' 
-                            : 'text-[var(--text-secondary)] hover:bg-[var(--bg)] hover:text-[var(--text-primary)]'
-                          }
-                        `}
-                      >
-                        <div className="flex flex-col">
-                          <span>{tool.name}</span>
-                          <span className="text-[10px] text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)]">
-                            {tool.desc}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8 pt-4 border-t border-[var(--border)]">
-              <Link href="/">
-                <button className="w-full text-center py-2 rounded-lg text-sm font-medium text-white bg-[var(--accent)] hover:opacity-85 transition-all shadow-sm">
-                  Volver al inicio
-                </button>
-              </Link>
-              <p className="text-[9px] text-center text-[var(--text-tertiary)] mt-3 opacity-50">
-                conversiones directas
-              </p>
-            </div>
-          </div>
-        )}
+          {!compact && (
+            <p className="mt-auto px-2 text-[11px] text-[var(--text-tertiary)]">
+              Todo se procesa en tu navegador. Tus archivos no se suben.
+            </p>
+          )}
+        </div>
       </aside>
 
       {mobileOpen && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 md:hidden" onClick={() => setMobileOpen(false)} />
+        <div className="fixed inset-0 bg-black/30 z-30 md:hidden" onClick={() => setMobileOpen(false)} />
       )}
     </>
   );

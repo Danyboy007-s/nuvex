@@ -6,7 +6,69 @@
 @tailwind utilities;
 
 /* ============================================
-   RESET Y BASE
+   SISTEMA DE DISEÑO DE NUVEX
+   ============================================
+   Reglas:
+   - Solo colores sólidos: nada de degradados.
+   - Profundidad con sombras suaves y "elevación" al pasar el mouse.
+   - Azul (--accent) = herramientas. Violeta (--ai) = todo lo de IA, y solo IA:
+     así lo de IA siempre destaca.
+   - Cada herramienta tiene su color propio (components/toolVisuals.jsx). */
+
+/* MODO CLARO — papel cálido y tinta */
+:root {
+  --bg: #f4f1ea;
+  --surface: #ffffff;
+  --surface-secondary: #faf8f3;
+  --surface-hover: rgba(22, 22, 26, 0.05);   /* fondo al pasar el mouse por botones */
+  --text-primary: #16161a;
+  --text-secondary: #5b5b66;
+  --text-tertiary: #9a9aa3;
+  --text-muted: var(--text-tertiary);       /* alias usado en algunos componentes */
+  --border: #e4dfd3;
+  --border-focus: rgba(0, 122, 255, 0.3);
+  --accent: #007aff;                        /* azul del logo */
+
+  /* IA */
+  --ai: #7b5cff;
+  --ai-soft: #ece7ff;                       /* violeta muy claro para fondos */
+  --ai-ink: #16161a;                        /* tarjeta oscura de la IA */
+  --ai-ink-text: #f4f1ea;
+
+  /* Sombras: siempre suaves, nunca negras duras */
+  --shadow-sm: 0 1px 2px rgba(22, 22, 26, 0.06);
+  --shadow-md: 0 6px 18px -6px rgba(22, 22, 26, 0.14);
+  --shadow-lg: 0 18px 40px -14px rgba(22, 22, 26, 0.22);
+  --shadow-ai: 0 22px 50px -18px rgba(123, 92, 255, 0.55);
+}
+
+/* MODO OSCURO — noche, tinta clara */
+.dark {
+  --bg: #0f0f12;
+  --surface: #1a1a1f;
+  --surface-secondary: #141418;
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --text-primary: #f4f2ec;
+  --text-secondary: #a3a3ad;
+  --text-tertiary: #6e6e78;
+  --text-muted: var(--text-tertiary);
+  --border: #2a2a31;
+  --border-focus: rgba(10, 132, 255, 0.35);
+  --accent: #0a84ff;
+
+  --ai: #8f75ff;
+  --ai-soft: #231d3d;
+  --ai-ink: #1d1830;
+  --ai-ink-text: #f4f2ec;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 18px -6px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 18px 40px -14px rgba(0, 0, 0, 0.7);
+  --shadow-ai: 0 22px 50px -18px rgba(143, 117, 255, 0.45);
+}
+
+/* ============================================
+   BASE
    ============================================ */
 * {
   margin: 0;
@@ -15,299 +77,116 @@
 }
 
 body {
-  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg);
   color: var(--text-primary);
-  font-smoothing: antialiased;
   -webkit-font-smoothing: antialiased;
   transition: background 0.3s ease, color 0.2s ease;
 }
 
-/* ============================================
-   TEMAS (MODO CLARO / OSCURO)
-   ============================================ */
-
-/* MODO CLARO — nube, papel, luz natural */
-:root {
-  --bg: #f5f5f7;
-  --surface: #ffffff;
-  --surface-secondary: #f9f9fb;
-  --text-primary: #1c1c1e;
-  --text-secondary: #6c6c70;
-  --text-tertiary: #aeaeb2;
-  --text-muted: var(--text-tertiary);       /* alias usado en Footer y WhyNuvex */
-  --surface-hover: rgba(0, 0, 0, 0.04);     /* fondo al pasar el mouse por botones */
-  --border: rgba(60, 60, 67, 0.08);
-  --border-focus: rgba(0, 122, 255, 0.3);
-  --accent: #007aff;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.06);
+::selection {
+  background: var(--ai);
+  color: white;
 }
 
-/* MODO OSCURO — estación de tren, noche quieta */
-.dark {
-  --bg: #000000;
-  --surface: #1c1c1e;
-  --surface-secondary: #141416;
-  --text-primary: #ffffff;
-  --text-secondary: #8e8e93;
-  --text-tertiary: #636366;
-  --text-muted: var(--text-tertiary);
-  --surface-hover: rgba(255, 255, 255, 0.06);
-  --border: rgba(84, 84, 88, 0.2);
-  --border-focus: rgba(10, 132, 255, 0.3);
-  --accent: #0a84ff;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.5);
-}
+/* Barras de desplazamiento discretas: Firefox usa scrollbar-color; Chrome y Safari, ::-webkit-scrollbar. */
+* { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 20px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
 
 /* ============================================
-   SUPERFICIES Y COMPONENTES
+   COMPONENTES REUTILIZABLES
    ============================================ */
 
-/* Tarjetas */
-.card {
-  background: var(--surface);
-  border-radius: 20px;
-  border: 0.5px solid var(--border);
-  transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
+/* Tarjeta que se eleva con sombra al pasar el mouse. */
+.lift {
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
-
-.card:hover {
+.lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+.lift:active {
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
-/* Vidrio (glassmorphism) */
-.glass {
-  background: rgba(28, 28, 30, 0.7);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  border: 0.5px solid var(--border);
-}
-
-.dark .glass {
-  background: rgba(28, 28, 30, 0.8);
-}
-
-/* Botones */
-.btn {
-  background: var(--surface);
-  border: 0.5px solid var(--border);
-  border-radius: 40px;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.btn:hover {
-  background: var(--surface-secondary);
-  transform: scale(0.98);
-}
-
-.btn-primary {
-  background: var(--accent);
-  color: white;
-  border: none;
-}
-
-.btn-primary:hover {
-  opacity: 0.85;
-  transform: scale(0.98);
-}
-
-/* Inputs */
-.input {
-  background: var(--surface-secondary);
-  border: 0.5px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-size: 15px;
-  color: var(--text-primary);
-  transition: all 0.2s ease;
-  width: 100%;
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--border-focus);
+/* Etiqueta pequeña ("Beta", "Nuevo"...) */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 /* ============================================
-   ANIMACIONES BASE
-   ============================================ */
+   ANIMACIONES
+   ============================================
+   Todas son suaves (curva con frenado) y se desactivan con
+   "reducir movimiento" (ver el final del archivo). */
 
-@keyframes fadeIn {
-  0% { opacity: 0; transform: translateY(8px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeInScale {
-  0% { opacity: 0; transform: scale(0.96); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-@keyframes pulseClock {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
-}
-
-/* Entrada de la portada (components/HeroSection.jsx) */
-@keyframes heroIn {
-  from { opacity: 0; transform: translateY(2rem); }
+/* Entrada de la portada: empieza con el primer pintado, sin esperar a JS. */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(1.25rem); }
   to { opacity: 1; transform: translateY(0); }
 }
+.rise-in { animation: riseIn 0.9s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+.rise-in-1 { animation-delay: 0.08s; }
+.rise-in-2 { animation-delay: 0.16s; }
+.rise-in-3 { animation-delay: 0.24s; }
 
-.hero-in {
-  animation: heroIn 1s cubic-bezier(0.4, 0, 0.2, 1) both;
+/* Aparición al hacer scroll (components/Reveal.jsx agrega/quita .is-hidden). */
+.reveal {
+  transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.3, 1), transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.reveal.is-hidden {
+  opacity: 0;
+  transform: translateY(1.5rem);
 }
 
-/* Quien pidió menos movimiento en su sistema ve el contenido sin animación. */
+/* Orbe de la IA: círculos sólidos que "respiran" con sombra suave. */
+@keyframes orbBreathe {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(123, 92, 255, 0.35); }
+  50% { transform: scale(1.06); box-shadow: 0 0 0 14px rgba(123, 92, 255, 0); }
+}
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(6px, -8px); }
+}
+.orb-core { animation: orbBreathe 3.2s ease-in-out infinite; }
+.orb-float { animation: orbFloat 6s ease-in-out infinite; }
+.orb-float-slow { animation: orbFloat 8s ease-in-out infinite reverse; }
+
+/* Puntos de "escribiendo..." del asistente */
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+.typing-dot { animation: typingDot 1.2s ease-in-out infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+/* Mensajes del chat */
+@keyframes messageIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.message-in { animation: messageIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+
+/* Cursor parpadeante del texto que se escribe solo */
+@keyframes caretBlink { 50% { opacity: 0; } }
+.caret { animation: caretBlink 1s step-end infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  .hero-in { animation: none; }
-}
-
-.animate-fade {
-  animation: fadeIn 0.4s cubic-bezier(0.2, 0.9, 0.4, 1) forwards;
-}
-
-.animate-fade-up {
-  animation: fadeIn 0.5s cubic-bezier(0.2, 0.9, 0.4, 1) forwards;
-}
-
-.animate-scale {
-  animation: fadeInScale 0.35s cubic-bezier(0.2, 0.9, 0.4, 1) forwards;
-}
-
-/* ============================================
-   ANIMACIONES PROFUNDAS (CINEMATOGRÁFICAS)
-   ============================================ */
-
-@keyframes fadeInUpSlow {
-  0% {
-    opacity: 0;
-    transform: translateY(24px);
-    filter: blur(4px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
-}
-
-@keyframes fadeInScaleSlow {
-  0% {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes slideInFromLeft {
-  0% {
-    opacity: 0;
-    transform: translateX(-32px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideInFromRight {
-  0% {
-    opacity: 0;
-    transform: translateX(32px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes glowPulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(10, 132, 255, 0);
-  }
-  50% {
-    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.15);
-  }
-}
-
-@keyframes borderReveal {
-  0% {
-    width: 0;
-    opacity: 0;
-  }
-  100% {
-    width: 48px;
-    opacity: 1;
-  }
-}
-
-.animate-fade-up-slow {
-  animation: fadeInUpSlow 0.8s cubic-bezier(0.2, 0.9, 0.4, 1) forwards;
-}
-
-.animate-fade-scale-slow {
-  animation: fadeInScaleSlow 0.7s cubic-bezier(0.2, 0.9, 0.4, 1) forwards;
-}
-
-.animate-slide-left {
-  animation: slideInFromLeft 0.7s cubic-bezier(0.2, 0.9, 0.4, 1) forwards;
-}
-
-.animate-slide-right {
-  animation: slideInFromRight 0.7s cubic-bezier(0.2, 0.9, 0.4, 1) forwards;
-}
-
-/* Hover con glow */
-.hover-glow {
-  transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1);
-}
-
-.hover-glow:hover {
-  box-shadow: 0 0 0 1px rgba(10, 132, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-/* ============================================
-   SCROLLBAR
-   ============================================ */
-
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--text-tertiary);
-  border-radius: 20px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
-}
-
-/* ============================================
-   SELECCIÓN DE TEXTO
-   ============================================ */
-
-::selection {
-  background: var(--accent);
-  color: white;
+  .rise-in, .orb-core, .orb-float, .orb-float-slow, .typing-dot, .message-in, .caret { animation: none; }
+  .reveal { transition: none; }
+  .reveal.is-hidden { opacity: 1; transform: none; }
+  .lift, .lift:hover { transition: none; transform: none; }
 }

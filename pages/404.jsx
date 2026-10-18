@@ -5,17 +5,21 @@ export default function Custom404() {
   return (
     <Layout title="Página no encontrada | Nuvex" noindex>
       <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 text-center">
-        <h1 className="text-8xl md:text-9xl font-light text-[var(--text-primary)] tracking-tight">404</h1>
-        <div className="w-12 h-px bg-[var(--accent)]/40 my-6" />
-        <h2 className="text-xl font-light text-[var(--text-secondary)]">Página no encontrada</h2>
-        <p className="text-[var(--text-tertiary)] text-sm mt-2 max-w-md">
-          Lo sentimos, la página que buscas no existe o fue movida.
+        <span className="inline-block -rotate-2 rounded-3xl px-6 py-2 text-7xl md:text-8xl font-semibold tracking-tight text-[#16161a]" style={{ background: "#d4ff3a", boxShadow: "var(--shadow-lg)" }}>
+          404
+        </span>
+        <h1 className="text-2xl font-semibold tracking-tight mt-10">Página no encontrada</h1>
+        <p className="text-[var(--text-secondary)] mt-2 max-w-md">
+          La página que buscas no existe o cambió de lugar.
         </p>
-        <Link href="/">
-          <button className="mt-8 px-6 py-2.5 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] text-sm font-medium hover:scale-105 transition-all duration-200">
+        <div className="flex flex-wrap justify-center gap-3 mt-8">
+          <Link href="/" className="lift inline-flex h-11 items-center px-5 rounded-2xl text-sm font-semibold bg-[var(--text-primary)] text-[var(--bg)]">
             Volver al inicio
-          </button>
-        </Link>
+          </Link>
+          <Link href="/tools?tool=assistant" className="lift inline-flex h-11 items-center px-5 rounded-2xl text-sm font-semibold text-white" style={{ background: "var(--ai)" }}>
+            Pregúntale a Nuvex IA
+          </Link>
+        </div>
       </div>
     </Layout>
   );

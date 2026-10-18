@@ -32,7 +32,8 @@ export default function ToolsPage() {
     // y si no, la última herramienta que usó esta persona.
     const tool = findTool(router.query.tool) || findTool(readLastToolId());
     if (tool) setSelectedTool(tool);
-  }, [router.isReady]);
+    // Se repite si cambia ?tool= (por ejemplo, al abrir una herramienta desde Nuvex IA).
+  }, [router.isReady, router.query.tool]);
 
   const handleSelectTool = (tool) => {
     setSelectedTool(tool);
@@ -46,13 +47,14 @@ export default function ToolsPage() {
       title={selectedTool ? `${selectedTool.name} | Nuvex` : "Todas las herramientas | Nuvex"}
       description="Todas las herramientas de Nuvex en un solo panel: PDF, compresor de imágenes, metadatos, fondos, DXF, texto y códigos QR. Gratis y en tu navegador."
       path="/tools"
+      wide
     >
-      <div className="flex flex-col md:flex-row min-h-screen">
+      <div className="flex flex-col md:flex-row">
         <ToolSidebar selectedToolId={selectedTool?.id} onSelectTool={handleSelectTool} />
         {/* Sin margen izquierdo: en escritorio el menú es sticky y ya ocupa su
             propio ancho dentro de la fila flex (y lo ajusta al colapsarse). */}
-        <main className="flex-1 min-w-0 min-h-screen">
-          <div className="max-w-3xl mx-auto px-6 py-12 md:py-16">
+        <main className="flex-1 min-w-0 min-h-[calc(100vh-4rem)]">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 md:py-14">
             <ToolRenderer tool={selectedTool} />
           </div>
         </main>
