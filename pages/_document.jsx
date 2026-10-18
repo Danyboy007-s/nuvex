@@ -13,6 +13,9 @@ export default function Document() {
         <meta charSet="utf-8" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <meta name="author" content="Nuvex" />
+        {/* Verificación de propiedad en Google Search Console (código público, no secreto).
+            Si se borra, Search Console deja de considerar verificado el sitio. */}
+        <meta name="google-site-verification" content="6kEtXONGfIQgcGSY2aOld1jcJWysSAArGvV-U-2VSHE" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#007aff" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

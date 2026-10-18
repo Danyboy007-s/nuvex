@@ -224,7 +224,7 @@ El sitio está en **Vercel**: **https://nuvex-beta.vercel.app**
   - Los textos de cada herramienta están en `lib/tools.js` (`seoTitle`, `seoDescription`).
   - Las páginas `/tools/<id>` son las que Google debe mostrar: cada una es una herramienta completa y lleva datos estructurados (JSON-LD).
 - **`public/sitemap.xml` y `public/robots.txt` se generan solos** en cada `npm run build` (`prebuild`). No los edites a mano.
-- **Después de publicar**, conviene dar de alta el sitio en [Google Search Console](https://search.google.com/search-console) y enviar el sitemap.
+- **Google Search Console:** el sitio se verifica con la etiqueta `google-site-verification` de `pages/_document.jsx`. No la borres. El sitemap a enviar es `sitemap.xml`.
 
 ---
 
