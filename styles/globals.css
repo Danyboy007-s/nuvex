@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+/* La fuente Inter se carga con next/font en pages/_app.jsx (variable --font-inter):
+   se descarga en el build y se sirve desde el propio sitio, sin bloquear el pintado. */
 
 @tailwind base;
 @tailwind components;
@@ -14,7 +15,7 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
   background: var(--bg);
   color: var(--text-primary);
   font-smoothing: antialiased;
@@ -34,6 +35,8 @@ body {
   --text-primary: #1c1c1e;
   --text-secondary: #6c6c70;
   --text-tertiary: #aeaeb2;
+  --text-muted: var(--text-tertiary);       /* alias usado en Footer y WhyNuvex */
+  --surface-hover: rgba(0, 0, 0, 0.04);     /* fondo al pasar el mouse por botones */
   --border: rgba(60, 60, 67, 0.08);
   --border-focus: rgba(0, 122, 255, 0.3);
   --accent: #007aff;
@@ -50,6 +53,8 @@ body {
   --text-primary: #ffffff;
   --text-secondary: #8e8e93;
   --text-tertiary: #636366;
+  --text-muted: var(--text-tertiary);
+  --surface-hover: rgba(255, 255, 255, 0.06);
   --border: rgba(84, 84, 88, 0.2);
   --border-focus: rgba(10, 132, 255, 0.3);
   --accent: #0a84ff;
@@ -151,6 +156,21 @@ body {
 @keyframes pulseClock {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
+}
+
+/* Entrada de la portada (components/HeroSection.jsx) */
+@keyframes heroIn {
+  from { opacity: 0; transform: translateY(2rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-in {
+  animation: heroIn 1s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Quien pidió menos movimiento en su sistema ve el contenido sin animación. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-in { animation: none; }
 }
 
 .animate-fade {

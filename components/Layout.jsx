@@ -1,7 +1,35 @@
 import Head from "next/head";
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, OG_IMAGE, absoluteUrl } from "../lib/site";
 
-export default function Layout({ children, title = "Nuvex", description = "Herramientas de conversión." }) {
+// Envoltorio común de todas las páginas. También arma las etiquetas de SEO:
+//   title / description → lo que muestra Google en los resultados
+//   path                → URL canónica de la página (evita contenido duplicado)
+//   appName             → solo en páginas de herramienta: agrega datos
+//                         estructurados (JSON-LD) y un enlace de vuelta al inicio
+//   noindex             → para páginas que no deben aparecer en Google (404)
+export default function Layout({
+  children,
+  title = DEFAULT_TITLE,
+  description = DEFAULT_DESCRIPTION,
+  path = "/",
+  appName = null,
+  noindex = false,
+}) {
+  const url = absoluteUrl(path);
+  const image = absoluteUrl(OG_IMAGE);
+  const jsonLd = appName && {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: `${appName} — ${SITE_NAME}`,
+    description,
+    url,
+    applicationCategory: "UtilitiesApplication",
+    operatingSystem: "Cualquiera (navegador web)",
+    inLanguage: "es",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  };
 
   const [time, setTime] = useState("");
   const [isDark, setIsDark] = useState(false);
@@ -45,14 +73,45 @@ export default function Layout({ children, title = "Nuvex", description = "Herra
         <title>{title}</title>
         <meta name="description" content={description} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <link rel="icon" href="/favicon.svg" />
-        {/* Preconnect para fuentes - mejora velocidad */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {noindex ? (
+          <meta name="robots" content="noindex" />
+        ) : (
+          <link rel="canonical" href={url} />
+        )}
+        {/* Vista previa al compartir el enlace (WhatsApp, Facebook, X, LinkedIn...) */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content={SITE_NAME} />
+        <meta property="og:locale" content="es_ES" />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={url} />
+        <meta property="og:image" content={image} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={image} />
+        {jsonLd && (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        )}
       </Head>
       <main className="relative min-h-screen flex flex-col bg-[var(--bg)] transition-colors duration-300">
-        <div className="rain-atmosphere" />
         
+        {/* En la página propia de una herramienta (a la que se llega desde
+            Google) no hay menú: este enlace permite ir al resto del sitio. */}
+        {appName && (
+          <Link
+            href="/"
+            className="fixed top-5 left-5 z-50 inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-[var(--surface)] border border-[var(--border)] text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Nuvex
+          </Link>
+        )}
+
         <div className="fixed top-5 right-5 z-50 flex items-center gap-3">
           <div className="text-sm font-medium text-[var(--text-secondary)] tracking-wide tabular-nums">
             {time}
@@ -75,7 +134,9 @@ export default function Layout({ children, title = "Nuvex", description = "Herra
           </button>
         </div>
         
-        <div className="relative z-10 flex-1">
+        {/* Las páginas de herramienta sueltas necesitan margen propio (dentro de
+            /tools se lo da el panel) y espacio arriba para el enlace y el reloj. */}
+        <div className={`relative z-10 flex-1 ${appName ? "px-4 sm:px-6 pt-20 pb-12" : ""}`}>
           {children}
         </div>
       </main>

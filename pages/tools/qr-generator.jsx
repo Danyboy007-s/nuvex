@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import Layout from "../../components/Layout";
+import { toolPageSeo } from "../../lib/tools";
 
 // ============================================
 // AJUSTES DE LECTURA
@@ -643,5 +644,5 @@ export default function QRGeneratorPage({ standalone = false }) {
   );
 
   if (standalone) return content;
-  return <Layout title="Nuvex — QR Artístico | Códigos QR profesionales">{content}</Layout>;
+  return <Layout {...toolPageSeo("qr-generator")}>{content}</Layout>;
 }

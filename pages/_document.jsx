@@ -1,26 +1,29 @@
 import { Html, Head, Main, NextScript } from 'next/document'
 
+// Aplica el tema oscuro ANTES de que se pinte la página. Sin esto, quien usa
+// modo oscuro ve un destello blanco: React solo lee la preferencia después de
+// cargar (ver components/Layout.jsx, que sigue manejando el botón de tema).
+// Es un script mínimo en línea a propósito: tiene que correr antes que todo.
+const themeScript = `try{if(localStorage.getItem('nuvex-theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}`;
+
 export default function Document() {
   return (
     <Html lang="es">
       <Head>
         <meta charSet="utf-8" />
-        <meta name="robots" content="index, follow" />
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <meta name="author" content="Nuvex" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#007aff" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="apple-touch-icon" href="/icon-192.png" />
-        <link rel="canonical" href="https://nuvex.app" />
-        <link rel="icon" href="/favicon.ico" />
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="Nuvex - Herramientas de conversión sin complicaciones" />
-        <meta property="og:description" content="Convierte, limpia y optimiza archivos directamente en tu navegador." />
-        <meta property="og:url" content="https://nuvex.app" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Nuvex - Herramientas de conversión" />
-        <meta name="twitter:description" content="Herramientas rápidas y directas. Sin servidores, sin complicaciones." />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        {/* Íconos: el SVG para navegadores modernos y el .ico como respaldo.
+            Se generan a partir de public/favicon.svg (ver README). */}
+        <link rel="icon" href="/favicon.ico" sizes="48x48" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        {/* Título, descripción, canonical y vista previa para redes van en
+            components/Layout.jsx, porque cambian en cada página. */}
       </Head>
       <body>
         <Main />

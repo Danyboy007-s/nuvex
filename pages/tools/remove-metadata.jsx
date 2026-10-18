@@ -1,34 +1,41 @@
 import { useState, useRef } from "react";
 import Layout from "../../components/Layout";
-import exifr from "exifr";
+import { toolPageSeo } from "../../lib/tools";
+import { stripMetadata } from "../../lib/metadata";
+import { decodeImage, encodeCanvas, resolveOutputMime, extensionFor } from "../../lib/image";
 
+// Limpia metadatos (GPS, cámara, fecha...). En JPG y PNG se quitan los bloques
+// de metadatos directamente del archivo (lib/metadata.js): la imagen no se
+// recomprime y conserva su formato. Otros formatos (WEBP...) se redibujan en
+// un canvas, que no copia metadatos.
 export default function RemoveMetadataPage({ standalone = false }) {
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [processing, setProcessing] = useState(false);
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState(null); // { blob, mime, removed, lossless }
   const [metadata, setMetadata] = useState(null);
+  const [error, setError] = useState(null);
   const [customName, setCustomName] = useState("");
   const fileInputRef = useRef(null);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImagePreview(event.target.result);
-        setImage(file);
-        setCustomName(file.name.split('.')[0]);
-        setResult(null);
-        setMetadata(null);
-      };
-      reader.readAsDataURL(file);
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+      setImagePreview(URL.createObjectURL(file));
+      setImage(file);
+      setCustomName(file.name.replace(/\.[^.]+$/, ""));
+      setResult(null);
+      setMetadata(null);
+      setError(null);
     }
   };
 
   const extractMetadata = async () => {
     if (!image) return;
     try {
+      // exifr se descarga solo si se pide ver los metadatos.
+      const { default: exifr } = await import("exifr");
       const data = await exifr.parse(image);
       if (data && Object.keys(data).length > 0) {
         setMetadata(data);
@@ -43,47 +50,41 @@ export default function RemoveMetadataPage({ standalone = false }) {
 
   const removeMetadata = async () => {
     if (!image) return;
-    
     setProcessing(true);
-    
+    setError(null);
     try {
-      // Crear un canvas para re-exportar la imagen sin metadatos
-      const img = new Image();
-      const url = URL.createObjectURL(image);
-      
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = url;
-      });
-      
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
-      
-      // Re-exportar como PNG (no guarda metadatos EXIF)
-      canvas.toBlob((blob) => {
-        setResult(blob);
-        setProcessing(false);
-        URL.revokeObjectURL(url);
-      }, "image/png");
-      
-    } catch (error) {
-      console.error("Error eliminando metadatos:", error);
-      setProcessing(false);
+      const bytes = new Uint8Array(await image.arrayBuffer());
+      const stripped = stripMetadata(bytes, image.type);
+      if (stripped) {
+        setResult({
+          blob: new Blob([stripped.bytes], { type: image.type }),
+          mime: image.type === "image/jpg" ? "image/jpeg" : image.type,
+          removed: stripped.removed,
+          lossless: true,
+        });
+      } else {
+        // Formato sin limpieza directa: se redibuja (recomprime con calidad alta).
+        const mime = resolveOutputMime(image.type);
+        const { canvas, ctx, bitmap } = await decodeImage(image);
+        ctx.drawImage(bitmap, 0, 0);
+        const blob = await encodeCanvas(canvas, mime, 0.92);
+        setResult({ blob, mime: blob.type || mime, removed: ["Todos los metadatos"], lossless: false });
+      }
+    } catch (err) {
+      console.error("Error eliminando metadatos:", err);
+      setError("No se pudo procesar esta imagen.");
     }
+    setProcessing(false);
   };
 
   const downloadImage = () => {
     if (!result) return;
-    const url = URL.createObjectURL(result);
+    const url = URL.createObjectURL(result.blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${customName || "imagen-limpia"}.png`;
+    a.download = `${customName || "imagen-limpia"}.${extensionFor(result.mime)}`;
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const content = (
@@ -180,6 +181,7 @@ export default function RemoveMetadataPage({ standalone = false }) {
             >
               {processing ? "Procesando..." : "Eliminar metadatos"}
             </button>
+            {error && <p className="text-xs text-red-500 text-center">{error}</p>}
           </div>
         )}
 
@@ -190,7 +192,17 @@ export default function RemoveMetadataPage({ standalone = false }) {
                 <path d="M5 13l4 4L19 7" />
               </svg>
               <p className="text-[var(--text-primary)] text-sm font-medium">Imagen limpia</p>
-              <p className="text-[var(--text-tertiary)] text-xs mt-1">Metadatos eliminados correctamente</p>
+              <p className="text-[var(--text-tertiary)] text-xs mt-1">
+                {result.removed.length > 0
+                  ? `Se quitó: ${result.removed.join(", ")}`
+                  : "No tenía metadatos que quitar"}
+              </p>
+              <p className="text-[var(--text-tertiary)] text-[11px] mt-1">
+                {result.lossless
+                  ? "Calidad intacta: la imagen no se recomprimió."
+                  : "Se volvió a guardar con calidad alta (92%)."}
+                {" "}{(image.size / 1024).toFixed(0)} KB → {(result.blob.size / 1024).toFixed(0)} KB
+              </p>
             </div>
             
             <button
@@ -200,7 +212,7 @@ export default function RemoveMetadataPage({ standalone = false }) {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M12 17V3M12 17l-4-4M12 17l4-4M5 21h14" />
               </svg>
-              Descargar {customName || "imagen-limpia"}.png
+              Descargar {customName || "imagen-limpia"}.{extensionFor(result.mime)}
             </button>
             
             <button
@@ -209,6 +221,7 @@ export default function RemoveMetadataPage({ standalone = false }) {
                 setImagePreview(null);
                 setResult(null);
                 setMetadata(null);
+                setError(null);
                 setCustomName("");
                 if (fileInputRef.current) fileInputRef.current.value = "";
               }}
@@ -227,5 +240,5 @@ export default function RemoveMetadataPage({ standalone = false }) {
   );
 
   if (standalone) return content;
-  return <Layout title="Nuvex — Eliminar metadatos EXIF">{content}</Layout>;
+  return <Layout {...toolPageSeo("remove-metadata")}>{content}</Layout>;
 }

@@ -1,16 +1,12 @@
-import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function HeroSection() {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
-
   return (
     <div className="min-h-[85vh] flex flex-col items-center justify-center px-6">
-      <div className={`text-center space-y-7 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+      {/* Entrada con animación CSS (hero-in, en globals.css): empieza en cuanto
+          se pinta la página, sin esperar a que cargue JavaScript. Antes dependía
+          de un useEffect y el título quedaba invisible hasta la hidratación. */}
+      <div className="text-center space-y-7 hero-in">
         
         <h1 className="text-7xl md:text-8xl font-semibold tracking-tight bg-gradient-to-r from-[var(--text-primary)] to-[var(--text-secondary)] bg-clip-text text-transparent">
           Nuvex

@@ -1,10 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
 import Layout from "../../components/Layout";
+import { toolPageSeo } from "../../lib/tools";
 import { PDFDocument } from "pdf-lib";
 import { useDropzone } from "react-dropzone";
 import {
   MODES, SINGLE_FILE_MODES, MAX_FILES, ACCEPT_CONVERT, ACCEPT_PDF,
   formatSize, isPdf, isText, loadPdf, embedImage, addImagePage, addTextPages, parsePageRanges,
+  IMAGE_LEVELS, recompressImages,
 } from "../../lib/pdf";
 
 // Trazos SVG de los íconos de cada modo (se dibujan dentro de un <svg> 24x24).
@@ -30,6 +32,7 @@ export default function PDFConverterPage({ standalone = false }) {
   const [customName, setCustomName] = useState("documento");
   const [mode, setMode] = useState("convert");
   const [extractPages, setExtractPages] = useState("");
+  const [imageLevel, setImageLevel] = useState("screen"); // calidad de imágenes al optimizar
 
   const currentMode = MODES.find((m) => m.id === mode);
 
@@ -167,25 +170,41 @@ export default function PDFConverterPage({ standalone = false }) {
     await finish(newPdf);
   };
 
-  // "Optimizar" reconstruye el PDF copiando solo las páginas. Eso descarta
-  // objetos huérfanos, versiones viejas de ediciones anteriores y metadatos,
-  // y comprime la estructura con object streams. NO recomprime imágenes:
-  // un PDF hecho de fotos casi no bajará de peso.
+  // "Optimizar" hace dos cosas:
+  //   1. Reconstruye el PDF copiando solo las páginas: descarta objetos
+  //      huérfanos, versiones viejas de ediciones anteriores y metadatos, y
+  //      comprime la estructura con object streams.
+  //   2. Recomprime las fotos a la calidad elegida (lib/pdf.js →
+  //      recompressImages). Es lo que más reduce un PDF de fotos o escaneos.
   const optimizePDF = async () => {
     setStatus("Reorganizando estructura...");
     const original = files[0];
     const source = await loadPdf(original.file);
-    setProgress(50);
+    setProgress(20);
     const newPdf = await PDFDocument.create();
     const pages = await newPdf.copyPages(source, source.getPageIndices());
     pages.forEach((page) => newPdf.addPage(page));
 
+    const level = IMAGE_LEVELS.find((l) => l.id === imageLevel);
+    const images = await recompressImages(newPdf, level, {
+      onProgress: (done, total) => {
+        if (total === 0) return;
+        setStatus(`Recomprimiendo imágenes (${done}/${total})...`);
+        setProgress(20 + Math.round((done / total) * 65));
+      },
+    });
+
     const bytes = await newPdf.save({ useObjectStreams: true });
     if (bytes.length >= original.size) {
-      throw new Error("Este PDF ya está optimizado; no se pudo reducir más su tamaño.");
+      throw new Error(
+        images.total === 0
+          ? "Este PDF ya está optimizado y no tiene fotos que recomprimir."
+          : "No se pudo reducir más este PDF. Prueba con una calidad de imágenes más baja."
+      );
     }
     const saved = Math.round((1 - bytes.length / original.size) * 100);
-    await finish(newPdf, `${formatSize(original.size)} → ${formatSize(bytes.length)} (−${saved}%)`, bytes);
+    const detail = images.replaced > 0 ? ` · ${images.replaced} de ${images.total} imágenes recomprimidas` : "";
+    await finish(newPdf, `${formatSize(original.size)} → ${formatSize(bytes.length)} (−${saved}%)${detail}`, bytes);
   };
 
   const handleProcess = async () => {
@@ -298,9 +317,28 @@ export default function PDFConverterPage({ standalone = false }) {
         )}
 
         {mode === "optimize" && files.length > 0 && !result && (
-          <p className="text-[var(--text-tertiary)] text-xs px-1">
-            Limpia la estructura interna del PDF. Las imágenes no se recomprimen, así que un PDF hecho de fotos puede no bajar de peso.
-          </p>
+          <div>
+            <label className="block text-[var(--text-secondary)] text-sm mb-2">Calidad de las imágenes</label>
+            <div className="grid grid-cols-3 gap-2">
+              {IMAGE_LEVELS.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => setImageLevel(l.id)}
+                  className={`px-3 py-2 rounded-xl border text-left transition-colors ${
+                    imageLevel === l.id
+                      ? "border-[var(--accent)] bg-[var(--accent)]/5"
+                      : "border-[var(--border)] hover:bg-[var(--surface-hover)]"
+                  }`}
+                >
+                  <span className="block text-sm text-[var(--text-primary)]">{l.label}</span>
+                  <span className="block text-[10px] text-[var(--text-tertiary)]">{l.hint}</span>
+                </button>
+              ))}
+            </div>
+            <p className="text-[var(--text-tertiary)] text-xs mt-2 px-1">
+              Limpia la estructura del PDF y recomprime las fotos. El texto, los logos y los escaneos en blanco y negro no se tocan.
+            </p>
+          </div>
         )}
 
         {files.length > 0 && !result && (
@@ -404,5 +442,5 @@ export default function PDFConverterPage({ standalone = false }) {
   );
 
   if (standalone) return content;
-  return <Layout title="Nuvex — PDF Converter">{content}</Layout>;
+  return <Layout {...toolPageSeo("pdf-converter")}>{content}</Layout>;
 }

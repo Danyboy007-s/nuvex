@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Layout from "../../components/Layout";
+import { toolPageSeo } from "../../lib/tools";
 
 // ============================================
 // FRASES TÍPICAS DE IA A ELIMINAR
@@ -304,5 +305,5 @@ export default function TextHumanizerPage({ standalone = false }) {
   );
 
   if (standalone) return content;
-  return <Layout title="Nuvex — Humanizador de texto">{content}</Layout>;
+  return <Layout {...toolPageSeo("text-humanizer")}>{content}</Layout>;
 }

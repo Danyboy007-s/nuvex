@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+import { TOOL_LOADERS } from '../lib/tools';
 
 const LoadingPlaceholder = () => (
   <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
@@ -12,36 +13,14 @@ const LoadingPlaceholder = () => (
   </div>
 );
 
-const toolsMap = {
-  'pdf-converter': dynamic(() => import('../pages/tools/pdf-converter'), { 
-    ssr: false,
-    loading: () => <LoadingPlaceholder />
-  }),
-  'file-utils': dynamic(() => import('../pages/tools/file-utils'), { 
-    ssr: false,
-    loading: () => <LoadingPlaceholder />
-  }),
-  'remove-metadata': dynamic(() => import('../pages/tools/remove-metadata'), { 
-    ssr: false,
-    loading: () => <LoadingPlaceholder />
-  }),
-  'remove-bg': dynamic(() => import('../pages/tools/remove-bg'), { 
-    ssr: false,
-    loading: () => <LoadingPlaceholder />
-  }),
-  'png-to-dxf': dynamic(() => import('../pages/tools/png-to-dxf'), { 
-    ssr: false,
-    loading: () => <LoadingPlaceholder />
-  }),
-  'text-humanizer': dynamic(() => import('../pages/tools/text-humanizer'), { 
-    ssr: false,
-    loading: () => <LoadingPlaceholder />
-  }),
-  'qr-generator': dynamic(() => import('../pages/tools/qr-generator'), { 
-    ssr: false,
-    loading: () => <LoadingPlaceholder />
-  }),
-};
+// Un componente "dinámico" por herramienta, a partir del registro (lib/tools.js).
+// ssr: false → solo se cargan en el navegador, porque usan window, canvas, etc.
+const toolsMap = Object.fromEntries(
+  Object.entries(TOOL_LOADERS).map(([id, load]) => [
+    id,
+    dynamic(load, { ssr: false, loading: () => <LoadingPlaceholder /> }),
+  ])
+);
 
 export default function ToolRenderer({ tool }) {
   if (!tool) {
@@ -61,7 +40,7 @@ export default function ToolRenderer({ tool }) {
   }
 
   const ToolComponent = toolsMap[tool.id];
-  
+
   if (!ToolComponent) {
     return (
       <div className="text-center py-20">

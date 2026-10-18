@@ -1,61 +1,70 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "../../components/Layout";
-import imageCompression from "browser-image-compression";
+import { toolPageSeo } from "../../lib/tools";
+import {
+  compressImage, resolveOutputMime, supportsQuality, extensionFor,
+  OUTPUT_FORMATS, SIZE_PRESETS,
+} from "../../lib/image";
 
+// Compresor de imágenes. La lógica está en lib/image.js: se decodifica la
+// imagen en un canvas y se vuelve a codificar con el codificador del navegador
+// (sin librerías externas, funciona también sin conexión).
 export default function FileUtilsPage({ standalone = false }) {
   const [image, setImage] = useState(null);
   const [originalPreview, setOriginalPreview] = useState(null);
   const [compressedPreview, setCompressedPreview] = useState(null);
-  const [compressed, setCompressed] = useState(null);
+  const [compressed, setCompressed] = useState(null); // { blob, mime, width, height, keptOriginal }
   const [compressing, setCompressing] = useState(false);
+  const [error, setError] = useState(null);
   const [originalSize, setOriginalSize] = useState(0);
   const [compressedSize, setCompressedSize] = useState(0);
   const [customName, setCustomName] = useState("");
-  const [quality, setQuality] = useState(0.7);
-  const [maxWidth, setMaxWidth] = useState(1024);
+  const [quality, setQuality] = useState(0.8);   // calidad real del codificador (0–1)
+  const [maxSide, setMaxSide] = useState(null);  // null = tamaño original
+  const [format, setFormat] = useState("auto");
 
-  const handleImageUpload = async (e) => {
+  const outputMime = image ? resolveOutputMime(image.type, format) : null;
+
+  // Las vistas previas usan URLs temporales: se liberan al cambiar de imagen.
+  useEffect(() => () => originalPreview && URL.revokeObjectURL(originalPreview), [originalPreview]);
+  useEffect(() => () => compressedPreview && URL.revokeObjectURL(compressedPreview), [compressedPreview]);
+
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("image/")) {
       setImage(file);
       setOriginalSize(file.size);
-      setCustomName(file.name.split('.')[0]);
+      setCustomName(file.name.replace(/\.[^.]+$/, ""));
       setCompressed(null);
       setCompressedPreview(null);
-      
-      // Vista previa original
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setOriginalPreview(event.target.result);
-      };
-      reader.readAsDataURL(file);
+      setError(null);
+      setOriginalPreview(URL.createObjectURL(file));
     }
   };
 
   const handleCompress = async () => {
     if (!image) return;
     setCompressing(true);
+    setError(null);
     try {
-      const options = {
-        maxSizeMB: quality,
-        maxWidthOrHeight: maxWidth,
-        useWebWorker: true,
-      };
-      const compressedFile = await imageCompression(image, options);
-      setCompressed(compressedFile);
-      setCompressedSize(compressedFile.size);
-      
-      // Vista previa comprimida
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setCompressedPreview(event.target.result);
-      };
-      reader.readAsDataURL(compressedFile);
-      
-    } catch (error) {
-      console.error("Compression error:", error);
+      const result = await compressImage(image, { quality, maxSide, format });
+      setCompressed(result);
+      setCompressedSize(result.blob.size);
+      setCompressedPreview(URL.createObjectURL(result.blob));
+    } catch (err) {
+      console.error("Error al comprimir:", err);
+      setError("No se pudo procesar esta imagen. Prueba con PNG, JPG o WEBP.");
     }
     setCompressing(false);
+  };
+
+  const download = () => {
+    const url = URL.createObjectURL(compressed.blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${customName || "comprimida"}.${extensionFor(compressed.mime)}`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const formatBytes = (bytes) => {
@@ -105,36 +114,52 @@ export default function FileUtilsPage({ standalone = false }) {
         {image && !compressed && (
           <div className="space-y-4 bg-[var(--surface)] rounded-xl border border-[var(--border)] p-5">
             <div>
-              <label className="block text-[var(--text-secondary)] text-sm mb-2">Calidad / Tamaño máximo: {(quality * 100).toFixed(0)}%</label>
-              <input
-                type="range"
-                min="0.1"
-                max="0.9"
-                step="0.05"
-                value={quality}
-                onChange={(e) => setQuality(parseFloat(e.target.value))}
-                className="w-full h-2 bg-[var(--surface-hover)] rounded-lg"
-              />
-              <div className="flex justify-between text-[10px] text-[var(--text-tertiary)] mt-1">
-                <span>Más compresión</span>
-                <span>Equilibrio</span>
-                <span>Más calidad</span>
+              <label className="block text-[var(--text-secondary)] text-sm mb-2">Formato de salida</label>
+              <div className="flex flex-wrap gap-2">
+                {OUTPUT_FORMATS.map((f) => (
+                  <button key={f.id} onClick={() => setFormat(f.id)} className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${format === f.id ? "bg-[var(--accent)] text-white border-transparent" : "border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"}`}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+              {outputMime === "image/png" && (
+                <p className="text-[11px] text-[var(--text-tertiary)] mt-2">
+                  PNG no tiene calidad ajustable: para reducir más el peso, elige WEBP (conserva la transparencia) o reduce el tamaño.
+                </p>
+              )}
+            </div>
+
+            {supportsQuality(outputMime) && (
+              <div>
+                <label className="block text-[var(--text-secondary)] text-sm mb-2">Calidad: {Math.round(quality * 100)}%</label>
+                <input
+                  type="range"
+                  min="0.3"
+                  max="0.95"
+                  step="0.05"
+                  value={quality}
+                  onChange={(e) => setQuality(parseFloat(e.target.value))}
+                  className="w-full h-2 bg-[var(--surface-hover)] rounded-lg"
+                />
+                <div className="flex justify-between text-[10px] text-[var(--text-tertiary)] mt-1">
+                  <span>Más ligera</span>
+                  <span>Recomendado: 75–85%</span>
+                  <span>Más calidad</span>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-[var(--text-secondary)] text-sm mb-2">Tamaño máximo (lado mayor)</label>
+              <div className="flex flex-wrap gap-2">
+                {SIZE_PRESETS.map((p) => (
+                  <button key={p.label} onClick={() => setMaxSide(p.value)} className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${maxSide === p.value ? "bg-[var(--accent)] text-white border-transparent" : "border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"}`}>
+                    {p.label}
+                  </button>
+                ))}
               </div>
             </div>
-            
-            <div>
-              <label className="block text-[var(--text-secondary)] text-sm mb-2">Ancho máximo: {maxWidth}px</label>
-              <input
-                type="range"
-                min="300"
-                max="2000"
-                step="50"
-                value={maxWidth}
-                onChange={(e) => setMaxWidth(parseInt(e.target.value))}
-                className="w-full h-2 bg-[var(--surface-hover)] rounded-lg"
-              />
-            </div>
-            
+
             <div>
               <label className="block text-[var(--text-secondary)] text-sm mb-2">Nombre del archivo</label>
               <input
@@ -153,6 +178,7 @@ export default function FileUtilsPage({ standalone = false }) {
             >
               {compressing ? "Comprimiendo..." : "Comprimir imagen"}
             </button>
+            {error && <p className="text-xs text-red-500 text-center">{error}</p>}
           </div>
         )}
 
@@ -185,21 +211,42 @@ export default function FileUtilsPage({ standalone = false }) {
               <svg className="w-6 h-6 mx-auto mb-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M5 13l4 4L19 7" />
               </svg>
-              <p className="text-[var(--text-primary)] text-sm font-medium">¡Compresión completada!</p>
-              <p className="text-[var(--text-tertiary)] text-xs mt-1">Reducción del {getSavings()}% · Ahorraste {formatBytes(originalSize - compressedSize)}</p>
+              {compressed.keptOriginal ? (
+                <>
+                  <p className="text-[var(--text-primary)] text-sm font-medium">Esta imagen ya estaba optimizada</p>
+                  <p className="text-[var(--text-tertiary)] text-xs mt-1">Comprimirla de nuevo la hacía más pesada, así que se conserva la original. Prueba con menos calidad, WEBP o un tamaño menor.</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[var(--text-primary)] text-sm font-medium">¡Compresión completada!</p>
+                  <p className="text-[var(--text-tertiary)] text-xs mt-1">
+                    {compressedSize < originalSize
+                      ? `Reducción del ${getSavings()}% · Ahorraste ${formatBytes(originalSize - compressedSize)}`
+                      : `Pesa ${formatBytes(compressedSize - originalSize)} más que la original (por el cambio de formato)`}
+                    {" · "}{compressed.width}×{compressed.height} px
+                  </p>
+                </>
+              )}
             </div>
             
-            <a
-              href={URL.createObjectURL(compressed)}
-              download={`${customName || "comprimida"}.${compressed?.name?.split('.').pop() || "jpg"}`}
+            <button
+              onClick={download}
               className="block w-full py-3 rounded-xl text-center bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] text-sm font-medium hover:bg-[var(--surface-hover)] transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M12 17V3M12 17l-4-4M12 17l4-4M5 21h14" />
               </svg>
               Descargar imagen comprimida
-            </a>
-            
+            </button>
+
+            {/* Vuelve a mostrar los ajustes con la misma imagen */}
+            <button
+              onClick={() => { setCompressed(null); setCompressedPreview(null); }}
+              className="w-full py-2 rounded-xl text-[var(--accent)] hover:opacity-80 text-sm transition-opacity"
+            >
+              Cambiar ajustes y volver a comprimir
+            </button>
+
             <button
               onClick={() => {
                 setImage(null);
@@ -209,6 +256,7 @@ export default function FileUtilsPage({ standalone = false }) {
                 setOriginalSize(0);
                 setCompressedSize(0);
                 setCustomName("");
+                setError(null);
                 document.getElementById('file-input').value = "";
               }}
               className="w-full py-2 rounded-xl text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] text-sm transition-colors"
@@ -229,5 +277,5 @@ export default function FileUtilsPage({ standalone = false }) {
   );
 
   if (standalone) return content;
-  return <Layout title="Nuvex — Compresor de imágenes">{content}</Layout>;
+  return <Layout {...toolPageSeo("file-utils")}>{content}</Layout>;
 }

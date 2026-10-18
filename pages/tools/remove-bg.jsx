@@ -1,5 +1,27 @@
 import { useState, useRef, useEffect } from "react";
 import Layout from "../../components/Layout";
+import { toolPageSeo } from "../../lib/tools";
+import { removeBackground, guessBackgroundColor, rgbToHex } from "../../lib/image";
+
+// Lee los píxeles de una imagen (data URL) y adivina el color de fondo
+// mirando todo su borde (ver lib/image.js).
+function detectBackgroundColor(src, onColor) {
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+    const { data } = ctx.getImageData(0, 0, img.width, img.height);
+    onColor(guessBackgroundColor(data, img.width, img.height));
+  };
+  img.src = src;
+}
+
+// Quita fondos de color uniforme (sin IA). Por defecto solo borra el fondo
+// conectado a los bordes de la imagen, así el mismo color dentro del objeto
+// (ojos blancos, letras, etc.) se conserva.
 
 export default function RemoveBgPage({ standalone = false }) {
   const [originalImage, setOriginalImage] = useState(null);
@@ -10,6 +32,7 @@ export default function RemoveBgPage({ standalone = false }) {
   const [tolerance, setTolerance] = useState(30);
   const [selectedColor, setSelectedColor] = useState("#ffffff");
   const [autoDetect, setAutoDetect] = useState(true);
+  const [mode, setMode] = useState("connected"); // "connected" | "all" (ver lib/image.js)
   const [customName, setCustomName] = useState("sin-fondo");
   const [eyeDropperSupported, setEyeDropperSupported] = useState(false);
   const fileInputRef = useRef(null);
@@ -28,7 +51,7 @@ export default function RemoveBgPage({ standalone = false }) {
       }, 100);
       return () => clearTimeout(timeout);
     }
-  }, [tolerance, selectedColor, originalImage]);
+  }, [tolerance, selectedColor, originalImage, mode]);
 
   const processImage = (file) => {
     const validTypes = ["image/png", "image/jpeg", "image/webp", "image/jpg"];
@@ -44,20 +67,7 @@ export default function RemoveBgPage({ standalone = false }) {
     const reader = new FileReader();
     reader.onload = (e) => {
       setOriginalImage(e.target.result);
-      if (autoDetect) {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-          const pixel = ctx.getImageData(10, 10, 1, 1).data;
-          const hex = "#" + ((1 << 24) + (pixel[0] << 16) + (pixel[1] << 8) + pixel[2]).toString(16).slice(1);
-          setSelectedColor(hex);
-        };
-        img.src = e.target.result;
-      }
+      if (autoDetect) detectBackgroundColor(e.target.result, setSelectedColor);
     };
     reader.readAsDataURL(file);
   };
@@ -82,26 +92,8 @@ export default function RemoveBgPage({ standalone = false }) {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
       
-      const r = parseInt(selectedColor.slice(1, 3), 16);
-      const g = parseInt(selectedColor.slice(3, 5), 16);
-      const b = parseInt(selectedColor.slice(5, 7), 16);
-      
-      for (let i = 0; i < data.length; i += 4) {
-        const pr = data[i];
-        const pg = data[i+1];
-        const pb = data[i+2];
-        
-        const diff = Math.sqrt(
-          Math.pow(pr - r, 2) + 
-          Math.pow(pg - g, 2) + 
-          Math.pow(pb - b, 2)
-        );
-        
-        if (diff < tolerance) {
-          data[i+3] = 0;
-        }
-      }
-      
+      removeBackground(data, canvas.width, canvas.height, selectedColor, tolerance, mode);
+
       ctx.putImageData(imageData, 0, 0);
       setResultImage(canvas.toDataURL("image/png"));
     } catch (err) {
@@ -143,8 +135,7 @@ export default function RemoveBgPage({ standalone = false }) {
     
     if (x >= 0 && x < img.width && y >= 0 && y < img.height) {
       const pixel = ctx.getImageData(x, y, 1, 1).data;
-      const hex = "#" + ((1 << 24) + (pixel[0] << 16) + (pixel[1] << 8) + pixel[2]).toString(16).slice(1);
-      setSelectedColor(hex);
+      setSelectedColor(rgbToHex(pixel[0], pixel[1], pixel[2]));
       setAutoDetect(false);
     }
   };
@@ -183,6 +174,7 @@ export default function RemoveBgPage({ standalone = false }) {
     setTolerance(30);
     setSelectedColor("#ffffff");
     setAutoDetect(true);
+    setMode("connected");
     setCustomName("sin-fondo");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -267,23 +259,11 @@ export default function RemoveBgPage({ standalone = false }) {
                   />
                   <div className="flex gap-2">
                     <button
-                      onClick={() => {
-                        const img = new Image();
-                        img.src = originalImage;
-                        img.onload = () => {
-                          const canvas = document.createElement("canvas");
-                          const ctx = canvas.getContext("2d");
-                          canvas.width = img.width;
-                          canvas.height = img.height;
-                          ctx.drawImage(img, 0, 0);
-                          const pixel = ctx.getImageData(10, 10, 1, 1).data;
-                          const hex = "#" + ((1 << 24) + (pixel[0] << 16) + (pixel[1] << 8) + pixel[2]).toString(16).slice(1);
-                          setSelectedColor(hex);
-                        };
-                      }}
+                      onClick={() => detectBackgroundColor(originalImage, setSelectedColor)}
                       className="px-3 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text-secondary)] text-xs hover:text-[var(--text-primary)] transition-colors"
+                      title="Usa el color más común del borde de la imagen"
                     >
-                      Esquina
+                      Del borde
                     </button>
                     
                     {eyeDropperSupported && (
@@ -321,6 +301,29 @@ export default function RemoveBgPage({ standalone = false }) {
               <div className="flex justify-between text-xs text-[var(--text-tertiary)] mt-1">
                 <span>Solo color exacto</span>
                 <span>Más tolerancia</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[var(--text-secondary)] text-sm mb-2">Qué borrar</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: "connected", label: "Solo el fondo", hint: "Lo que toca los bordes" },
+                  { id: "all", label: "Todo ese color", hint: "También dentro del objeto" },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setMode(m.id)}
+                    className={`px-3 py-2 rounded-xl border text-left transition-colors ${
+                      mode === m.id
+                        ? "border-[var(--accent)] bg-[var(--accent)]/5"
+                        : "border-[var(--border)] hover:bg-[var(--surface-hover)]"
+                    }`}
+                  >
+                    <span className="block text-sm text-[var(--text-primary)]">{m.label}</span>
+                    <span className="block text-[10px] text-[var(--text-tertiary)]">{m.hint}</span>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -423,5 +426,5 @@ export default function RemoveBgPage({ standalone = false }) {
   );
 
   if (standalone) return content;
-  return <Layout title="Nuvex — Eliminar fondo de imágenes | Herramienta gratuita">{content}</Layout>;
+  return <Layout {...toolPageSeo("remove-bg")}>{content}</Layout>;
 }

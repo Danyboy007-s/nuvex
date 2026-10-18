@@ -3,7 +3,7 @@ import Layout from '../components/Layout';
 
 export default function Custom404() {
   return (
-    <Layout title="Página no encontrada">
+    <Layout title="Página no encontrada | Nuvex" noindex>
       <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 text-center">
         <h1 className="text-8xl md:text-9xl font-light text-[var(--text-primary)] tracking-tight">404</h1>
         <div className="w-12 h-px bg-[var(--accent)]/40 my-6" />

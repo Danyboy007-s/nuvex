@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 
 const tools = [
   {
@@ -16,7 +15,7 @@ const tools = [
         <path d="M16 17H8"/>
       </svg>
     ),
-    href: "/tools",
+    href: "/tools?tool=pdf-converter",
   },
   {
     id: "file-utils",
@@ -30,7 +29,7 @@ const tools = [
         <circle cx="9" cy="9" r="2"/>
       </svg>
     ),
-    href: "/tools",
+    href: "/tools?tool=file-utils",
   },
   {
     id: "remove-metadata",
@@ -42,7 +41,7 @@ const tools = [
         <circle cx="12" cy="12" r="3"/>
       </svg>
     ),
-    href: "/tools",
+    href: "/tools?tool=remove-metadata",
   },
   {
     id: "qr-generator",
@@ -64,7 +63,7 @@ const tools = [
         <path d="M12 21v-1"/>
       </svg>
     ),
-    href: "/tools",
+    href: "/tools?tool=qr-generator",
   },
   {
     id: "png-to-dxf",
@@ -79,7 +78,7 @@ const tools = [
         <circle cx="12" cy="5" r="2"/>
       </svg>
     ),
-    href: "/tools",
+    href: "/tools?tool=png-to-dxf",
   },
   {
     id: "text-humanizer",
@@ -90,15 +89,28 @@ const tools = [
         <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
       </svg>
     ),
-    href: "/tools",
+    href: "/tools?tool=text-humanizer",
   },
 ];
 
 export default function FeaturedTools() {
+  // Las tarjetas se ven desde el HTML inicial (Google y conexiones lentas no
+  // dependen de JavaScript). Al cargar, solo las que están más abajo de la
+  // pantalla se ocultan para aparecer con animación al hacer scroll.
+  const [animate, setAnimate] = useState(false);
   const [visibleTools, setVisibleTools] = useState([]);
   const cardsRef = useRef([]);
 
   useEffect(() => {
+    // Quien pidió menos movimiento en su sistema ve las tarjetas sin animación.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const alreadyOnScreen = cardsRef.current
+      .map((card, idx) => (card && card.getBoundingClientRect().top < window.innerHeight ? idx : null))
+      .filter((idx) => idx !== null);
+    setVisibleTools(alreadyOnScreen);
+    setAnimate(true);
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -129,7 +141,7 @@ export default function FeaturedTools() {
             data-index={idx}
             className={`
               transition-all duration-700 ease-out
-              ${visibleTools.includes(idx) 
+              ${!animate || visibleTools.includes(idx)
                 ? 'opacity-100 translate-x-0' 
                 : 'opacity-0 ' + (idx % 2 === 0 ? '-translate-x-8' : 'translate-x-8')
               }

@@ -1,255 +1,92 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Layout from "../../components/Layout";
+import { toolPageSeo } from "../../lib/tools";
+import { vectorize, toDxf, toSvgPath, countVertices, SHAPE_MODES } from "../../lib/dxf";
+import { decodeImage } from "../../lib/image";
 
+// Nivel de detalle = tolerancia de simplificación, en píxeles (lib/dxf.js).
+const DETAIL_LEVELS = [
+  { value: 0.5, label: "Alto" },
+  { value: 1, label: "Normal" },
+  { value: 2, label: "Suave" },
+];
+// Las imágenes más grandes se reducen: más píxeles no dan mejores contornos,
+// solo hacen todo más lento.
+const MAX_SIDE = 2500;
+
+// Imagen PNG/JPG → DXF. La lógica está en lib/dxf.js; aquí solo la interfaz.
+// Los contornos se recalculan al cambiar una opción y se ven en la vista previa.
 export default function PngToDxfPage({ standalone = false }) {
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState(null);       // { data, width, height }
   const [imagePreview, setImagePreview] = useState(null);
-  const [converting, setConverting] = useState(false);
-  const [dxfContent, setDxfContent] = useState(null);
   const [customName, setCustomName] = useState("convertido");
-  const [contourCount, setContourCount] = useState(0);
   const [error, setError] = useState(null);
+  const [shape, setShape] = useState("auto");
+  const [tolerance, setTolerance] = useState(1);
+  const [ignoreSpecks, setIgnoreSpecks] = useState(true);
+  const [widthMm, setWidthMm] = useState("");    // ancho final del dibujo
   const fileInputRef = useRef(null);
-  const canvasRef = useRef(null);
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImagePreview(event.target.result);
-        setImage(file);
-        setDxfContent(null);
-        setCustomName(file.name.split('.')[0]);
-        setContourCount(0);
-        setError(null);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const imageToBitmap = (imgElement) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    canvas.width = imgElement.width;
-    canvas.height = imgElement.height;
-    ctx.drawImage(imgElement, 0, 0);
-    
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    const bitmap = [];
-    
-    // Calcular umbral automático usando Otsu (más inteligente)
-    // Primero, obtener histograma de brillo
-    const histogram = Array(256).fill(0);
-    for (let i = 0; i < data.length; i += 4) {
-      const brightness = (data[i] + data[i+1] + data[i+2]) / 3;
-      histogram[Math.floor(brightness)]++;
-    }
-    
-    // Método Otsu para umbral óptimo
-    let total = 0;
-    for (let i = 0; i < 256; i++) total += histogram[i];
-    
-    let sum = 0;
-    for (let i = 0; i < 256; i++) sum += i * histogram[i];
-    
-    let sumB = 0;
-    let wB = 0;
-    let wF = 0;
-    let varMax = 0;
-    let threshold = 0;
-    
-    for (let i = 0; i < 256; i++) {
-      wB += histogram[i];
-      if (wB === 0) continue;
-      wF = total - wB;
-      if (wF === 0) break;
-      
-      sumB += i * histogram[i];
-      const mB = sumB / wB;
-      const mF = (sum - sumB) / wF;
-      const varBetween = wB * wF * (mB - mF) * (mB - mF);
-      
-      if (varBetween > varMax) {
-        varMax = varBetween;
-        threshold = i;
-      }
-    }
-    
-    for (let i = 0; i < canvas.height; i++) {
-      bitmap[i] = [];
-      for (let j = 0; j < canvas.width; j++) {
-        const idx = (i * canvas.width + j) * 4;
-        const brightness = (data[idx] + data[idx+1] + data[idx+2]) / 3;
-        bitmap[i][j] = brightness < threshold;
-      }
-    }
-    
-    return { bitmap, width: canvas.width, height: canvas.height };
-  };
-
-  const findContours = (bitmap, width, height) => {
-    const visited = Array(height).fill().map(() => Array(width).fill(false));
-    const contours = [];
-    const dirX = [1, 0, -1, 0];
-    const dirY = [0, -1, 0, 1];
-    
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        if (bitmap[y][x] && !visited[y][x]) {
-          const contour = [];
-          let startX = x, startY = y;
-          let currentX = x, currentY = y;
-          let dir = 0;
-          
-          do {
-            visited[currentY][currentX] = true;
-            contour.push({ x: currentX, y: currentY });
-            
-            let found = false;
-            for (let i = 0; i < 4; i++) {
-              const newDir = (dir + i) % 4;
-              const newX = currentX + dirX[newDir];
-              const newY = currentY + dirY[newDir];
-              
-              if (newX >= 0 && newX < width && newY >= 0 && newY < height && bitmap[newY][newX]) {
-                currentX = newX;
-                currentY = newY;
-                dir = (newDir + 3) % 4;
-                found = true;
-                break;
-              }
-            }
-            if (!found) break;
-            
-          } while (currentX !== startX || currentY !== startY);
-          
-          if (contour.length > 10) {
-            contours.push(contour);
-          }
-        }
-      }
-    }
-    
-    return contours;
-  };
-
-  const contoursToDxf = (contours, width, height) => {
-    let dxf = `0
-SECTION
-2
-HEADER
-0
-ENDSEC
-0
-SECTION
-2
-ENTITIES
-`;
-    
-    for (const contour of contours) {
-      if (contour.length < 3) continue;
-      
-      dxf += `0
-POLYLINE
-8
-0
-66
-1
-10
-0.0
-20
-0.0
-30
-0.0
-70
-0
-`;
-      
-      for (const point of contour) {
-        const x = point.x;
-        const y = height - point.y;
-        dxf += `0
-VERTEX
-8
-0
-10
-${x}
-20
-${y}
-30
-0.0
-70
-32
-`;
-      }
-      
-      dxf += `0
-SEQEND
-8
-0
-`;
-    }
-    
-    dxf += `0
-ENDSEC
-0
-EOF`;
-    return dxf;
-  };
-
-  const convertToDxf = async () => {
-    if (!imagePreview) {
-      setError("No hay imagen cargada");
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Selecciona una imagen PNG, JPG o WEBP.");
       return;
     }
-    
-    setConverting(true);
     setError(null);
-    setContourCount(0);
-    
     try {
-      const img = new Image();
-      img.src = imagePreview;
-      
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-      });
-      
-      const { bitmap, width, height } = imageToBitmap(img);
-      const contours = findContours(bitmap, width, height);
-      
-      if (contours.length === 0) {
-        setError("No se detectaron bordes. Prueba con una imagen de mayor contraste.");
-        setConverting(false);
-        return;
-      }
-      
-      const dxf = contoursToDxf(contours, width, height);
-      setDxfContent(dxf);
-      setContourCount(contours.length);
-      
+      const { ctx, bitmap, width, height } = await decodeImage(file, MAX_SIDE);
+      ctx.drawImage(bitmap, 0, 0, width, height);
+      bitmap.close?.();
+      setImage({ data: ctx.getImageData(0, 0, width, height).data, width, height });
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+      setImagePreview(URL.createObjectURL(file));
+      setCustomName(file.name.replace(/\.[^.]+$/, ""));
+      setWidthMm(String(width));
     } catch (err) {
-      console.error("Error:", err);
-      setError("Error al procesar la imagen. Intenta con otra imagen.");
+      console.error(err);
+      setError("No se pudo leer la imagen.");
     }
-    
-    setConverting(false);
   };
 
+  // Vectorizar es rápido (decenas de ms), así que se hace al momento.
+  const contours = useMemo(() => {
+    if (!image) return null;
+    return vectorize(image.data, image.width, image.height, {
+      shape, tolerance, minArea: ignoreSpecks ? 16 : 1,
+    });
+  }, [image, shape, tolerance, ignoreSpecks]);
+
+  // mm por píxel según el ancho pedido (si está vacío o no es válido, 1 px = 1 mm).
+  const scale = image && Number(widthMm) > 0 ? Number(widthMm) / image.width : 1;
+
+  useEffect(() => () => imagePreview && URL.revokeObjectURL(imagePreview), [imagePreview]);
+
   const downloadDxf = () => {
-    if (!dxfContent) return;
-    
-    const blob = new Blob([dxfContent], { type: "application/dxf" });
+    const blob = new Blob([toDxf(contours, image.height, scale)], { type: "application/dxf" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `${customName}.dxf`;
+    a.download = `${customName || "convertido"}.dxf`;
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+
+  const reset = () => {
+    setImage(null);
+    setImagePreview(null);
+    setCustomName("convertido");
+    setError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const chip = (active) =>
+    `px-3 py-1.5 rounded-lg text-xs border transition-colors ${
+      active
+        ? "bg-[var(--accent)] text-white border-transparent"
+        : "border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
+    }`;
 
   const content = (
     <div className="max-w-2xl mx-auto">
@@ -277,111 +114,144 @@ EOF`;
             type="file"
             ref={fileInputRef}
             onChange={handleImageUpload}
-            accept="image/png,image/jpeg"
+            accept="image/png,image/jpeg,image/webp"
             className="hidden"
           />
           <svg className="w-10 h-10 mx-auto mb-3 text-[var(--text-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
           <p className="text-[var(--text-secondary)] text-sm">
-            {imagePreview ? "Imagen cargada" : "Selecciona PNG o JPG"}
+            {imagePreview ? "Cambiar imagen" : "Selecciona PNG, JPG o WEBP"}
           </p>
           <p className="text-[var(--text-tertiary)] text-xs mt-1">
             Ideal para logos, planos, siluetas y dibujos lineales
           </p>
         </div>
         
-        {imagePreview && (
+        {error && (
+          <div className="bg-red-500/10 rounded-xl p-3 text-center border border-red-500/30">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
+
+        {image && contours && (
           <>
-            <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] overflow-hidden">
-              <div className="p-3 border-b border-[var(--border)] bg-[var(--surface-hover)]/50">
-                <p className="text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Imagen original</p>
+            {/* Original y resultado lado a lado */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] overflow-hidden">
+                <p className="p-2 text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider border-b border-[var(--border)]">Original</p>
+                <img src={imagePreview} alt="Original" className="w-full h-40 object-contain p-3" />
               </div>
-              <img src={imagePreview} alt="Preview" className="w-full max-h-48 object-contain p-4" />
+              <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] overflow-hidden">
+                <p className="p-2 text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider border-b border-[var(--border)]">Contornos DXF</p>
+                <svg viewBox={`0 0 ${image.width} ${image.height}`} className="w-full h-40 p-3" preserveAspectRatio="xMidYMid meet">
+                  <path
+                    d={toSvgPath(contours)}
+                    fill="var(--accent)"
+                    fillOpacity="0.15"
+                    fillRule="evenodd"
+                    stroke="var(--accent)"
+                    strokeWidth={Math.max(image.width, image.height) / 300}
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
             </div>
-            
-            <div>
-              <label className="block text-[var(--text-secondary)] text-sm mb-2">Nombre del archivo DXF</label>
-              <input
-                type="text"
-                value={customName}
-                onChange={(e) => setCustomName(e.target.value)}
-                placeholder="mi-plano"
-                className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] transition"
-              />
-              <p className="text-[var(--text-tertiary)] text-xs mt-1">.dxf se agregará automáticamente</p>
+            <p className="text-center text-[11px] text-[var(--text-tertiary)] -mt-2">
+              {contours.length} contornos cerrados · {countVertices(contours)} puntos
+              {contours.length > 2000 && " · parece una foto: funciona mejor con logos y siluetas"}
+            </p>
+
+            <div className="space-y-4 bg-[var(--surface)] rounded-xl border border-[var(--border)] p-5">
+              <div>
+                <label className="block text-[var(--text-secondary)] text-sm mb-2">Qué es la forma</label>
+                <div className="flex flex-wrap gap-2">
+                  {SHAPE_MODES.map((m) => (
+                    <button key={m.id} onClick={() => setShape(m.id)} className={chip(shape === m.id)}>{m.label}</button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-[var(--text-tertiary)] mt-1">
+                  Automático: si la imagen tiene fondo transparente usa lo visible; si no, lo oscuro.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-[var(--text-secondary)] text-sm mb-2">Detalle de las curvas</label>
+                <div className="flex flex-wrap gap-2">
+                  {DETAIL_LEVELS.map((d) => (
+                    <button key={d.value} onClick={() => setTolerance(d.value)} className={chip(tolerance === d.value)}>{d.label}</button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-[var(--text-tertiary)] mt-1">
+                  Más detalle sigue mejor las curvas pequeñas; "Suave" da archivos más ligeros.
+                </p>
+              </div>
+
+              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)] cursor-pointer">
+                <input type="checkbox" checked={ignoreSpecks} onChange={(e) => setIgnoreSpecks(e.target.checked)} className="accent-[var(--accent)]" />
+                Ignorar manchas y puntos sueltos
+              </label>
+
+              <div>
+                <label className="block text-[var(--text-secondary)] text-sm mb-2">Ancho del dibujo (mm)</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={widthMm}
+                  onChange={(e) => setWidthMm(e.target.value)}
+                  className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition"
+                />
+                <p className="text-[10px] text-[var(--text-tertiary)] mt-1">
+                  Alto resultante: {(image.height * scale).toFixed(1)} mm. Por defecto, 1 píxel = 1 mm.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-[var(--text-secondary)] text-sm mb-2">Nombre del archivo</label>
+                <input
+                  type="text"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  placeholder="mi-plano"
+                  className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] transition"
+                />
+              </div>
             </div>
-            
-            {!dxfContent && (
+
+            {contours.length === 0 ? (
+              <p className="text-center text-sm text-[var(--text-secondary)]">
+                No se detectó ninguna forma. Prueba "Lo claro" o una imagen con más contraste.
+              </p>
+            ) : (
               <button
-                onClick={convertToDxf}
-                disabled={converting}
-                className={`w-full py-3 rounded-xl font-medium transition-all ${
-                  converting
-                    ? "bg-[var(--surface)] text-[var(--text-tertiary)] cursor-not-allowed border border-[var(--border)]"
-                    : "bg-[var(--accent)] text-white hover:opacity-85 shadow-sm"
-                }`}
+                onClick={downloadDxf}
+                className="w-full py-3 rounded-xl bg-[var(--accent)] text-white text-sm font-medium hover:opacity-85 transition-opacity shadow-sm flex items-center justify-center gap-2"
               >
-                {converting ? "Convirtiendo..." : "Convertir a DXF"}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 17V3M12 17l-4-4M12 17l4-4M5 21h14" />
+                </svg>
+                Descargar {customName || "convertido"}.dxf
               </button>
             )}
-            
-            {error && (
-              <div className="bg-red-500/10 rounded-xl p-3 text-center border border-red-500/30">
-                <p className="text-red-400 text-sm">{error}</p>
-              </div>
-            )}
-            
-            {dxfContent && (
-              <div className="space-y-4">
-                <div className="bg-green-500/10 rounded-xl p-4 text-center border border-green-500/30">
-                  <svg className="w-6 h-6 mx-auto mb-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M5 13l4 4L19 7" />
-                  </svg>
-                  <p className="text-[var(--text-primary)] text-sm font-medium">Conversión completada</p>
-                  <p className="text-[var(--text-tertiary)] text-xs mt-1">{contourCount} contornos vectorizados</p>
-                </div>
-                
-                <button
-                  onClick={downloadDxf}
-                  className="w-full py-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] text-sm font-medium hover:bg-[var(--surface-hover)] transition-colors flex items-center justify-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 17V3M12 17l-4-4M12 17l4-4M5 21h14" />
-                  </svg>
-                  Descargar {customName}.dxf
-                </button>
-                
-                <button
-                  onClick={() => {
-                    setImagePreview(null);
-                    setImage(null);
-                    setDxfContent(null);
-                    setCustomName("convertido");
-                    setContourCount(0);
-                    setError(null);
-                    if (fileInputRef.current) fileInputRef.current.value = "";
-                  }}
-                  className="w-full py-2 rounded-xl text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] text-sm transition-colors"
-                >
-                  Convertir otra imagen
-                </button>
-              </div>
-            )}
+
+            <button
+              onClick={reset}
+              className="w-full py-2 rounded-xl text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] text-sm transition-colors"
+            >
+              Convertir otra imagen
+            </button>
           </>
         )}
-        
+
         <div className="bg-[var(--surface)] rounded-xl p-4 text-center border border-[var(--border)]">
-          <p className="text-[var(--text-tertiary)] text-xs">Vectorización local · Formato DXF compatible con AutoCAD</p>
+          <p className="text-[var(--text-tertiary)] text-xs">Vectorización local · Polilíneas cerradas DXF (R12): AutoCAD, LibreCAD, Inkscape, láser y CNC</p>
         </div>
       </div>
 
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
-      
       <p className="text-center text-[var(--text-tertiary)] text-xs mt-8">Procesamiento local · Tus imágenes no se suben</p>
     </div>
   );
 
   if (standalone) return content;
-  return <Layout title="Nuvex — PNG a DXF para AutoCAD">{content}</Layout>;
+  return <Layout {...toolPageSeo("png-to-dxf")}>{content}</Layout>;
 }

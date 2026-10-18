@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
-Sitemap: https://nuvex.app/sitemap.xml
+
+Sitemap: https://nuvex-5d7.pages.dev/sitemap.xml
