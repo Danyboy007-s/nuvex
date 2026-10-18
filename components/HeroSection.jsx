@@ -11,7 +11,7 @@ export default function HeroSection() {
   return (
     <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 md:pt-20 pb-16 grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
       <div className="lg:col-span-5 space-y-6">
-        <span className="rise-in pill bg-[var(--surface)] border border-[var(--border)] text-[var(--text-secondary)]">
+        <span className="rise-in pill bg-(--surface) border border-(--border) text-(--text-secondary)">
           <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--ai)" }} />
           Nuevo: Nuvex IA
         </span>
@@ -25,20 +25,20 @@ export default function HeroSection() {
           Nuvex lo resuelve.
         </h1>
 
-        <p className="rise-in rise-in-2 text-lg text-[var(--text-secondary)] max-w-md">
+        <p className="rise-in rise-in-2 text-lg text-(--text-secondary) max-w-md">
           Herramientas gratis para PDF, fotos, textos y códigos QR. Todo pasa en tu navegador: tus archivos nunca salen de tu equipo.
         </p>
 
         <div className="rise-in rise-in-3 flex flex-wrap items-center gap-3">
           <Link
             href="/tools"
-            className="lift inline-flex h-12 items-center gap-2 px-6 rounded-2xl text-sm font-semibold bg-[var(--text-primary)] text-[var(--bg)]"
+            className="lift inline-flex h-12 items-center gap-2 px-6 rounded-2xl text-sm font-semibold bg-(--text-primary) text-(--bg)"
           >
             Ver herramientas <span aria-hidden="true">→</span>
           </Link>
-          <div className="flex gap-4 text-sm text-[var(--text-secondary)]">
-            <span><strong className="text-[var(--text-primary)]">{toolCount}</strong> herramientas</span>
-            <span><strong className="text-[var(--text-primary)]">0</strong> registros</span>
+          <div className="flex gap-4 text-sm text-(--text-secondary)">
+            <span><strong className="text-(--text-primary)">{toolCount}</strong> herramientas</span>
+            <span><strong className="text-(--text-primary)">0</strong> registros</span>
           </div>
         </div>
       </div>

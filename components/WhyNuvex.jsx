@@ -26,7 +26,7 @@ export default function WhyNuvex() {
   return (
     <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
       <Reveal className="mb-8">
-        <p className="text-sm font-semibold text-[var(--accent)] mb-2">Por qué Nuvex</p>
+        <p className="text-sm font-semibold text-(--accent) mb-2">Por qué Nuvex</p>
         <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">Sin cuentas. Sin colas. Sin sorpresas.</h2>
       </Reveal>
       <div className="grid md:grid-cols-3 gap-4">

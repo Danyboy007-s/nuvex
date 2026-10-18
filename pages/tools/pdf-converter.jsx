@@ -228,7 +228,7 @@ export default function PDFConverterPage({ standalone = false }) {
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-8">
         <div className="flex justify-center mb-3">
-          <svg className="w-10 h-10 text-[var(--accent)]" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <svg className="w-10 h-10 text-(--accent)" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
             <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/>
             <path d="M14 2v5a1 1 0 0 0 1 1h5"/>
             <path d="M10 9H8"/>
@@ -236,19 +236,19 @@ export default function PDFConverterPage({ standalone = false }) {
             <path d="M16 17H8"/>
           </svg>
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-[var(--text-primary)]">PDF Converter</h1>
-        <p className="text-[var(--text-secondary)] text-sm mt-1">Convierte, combina, extrae y optimiza PDFs</p>
-        <div className="w-8 h-px bg-[var(--border)] mx-auto mt-3" />
+        <h1 className="text-3xl font-light tracking-tight text-(--text-primary)">PDF Converter</h1>
+        <p className="text-(--text-secondary) text-sm mt-1">Convierte, combina, extrae y optimiza PDFs</p>
+        <div className="w-8 h-px bg-(--border) mx-auto mt-3" />
       </div>
 
       <div className="space-y-5">
         {/* Selector de modo */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-1 bg-[var(--surface)] rounded-xl border border-[var(--border)]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-1 bg-(--surface) rounded-xl border border-(--border)">
           {MODES.map((m) => (
             <button
               key={m.id}
               onClick={() => switchMode(m.id)}
-              className={`py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${mode === m.id ? "bg-[var(--accent)] text-white" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+              className={`py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${mode === m.id ? "bg-(--accent) text-white" : "text-(--text-secondary) hover:text-(--text-primary)"}`}
             >
               <svg className="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" strokeLinecap="round" viewBox="0 0 24 24">
                 {MODE_ICONS[m.id]}
@@ -259,32 +259,32 @@ export default function PDFConverterPage({ standalone = false }) {
         </div>
 
         {/* Zona para soltar archivos */}
-        <div {...getRootProps()} className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${isDragActive ? "border-[var(--accent)] bg-[var(--accent)]/5" : "border-[var(--border)] hover:border-[var(--accent)]"}`}>
+        <div {...getRootProps()} className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${isDragActive ? "border-(--accent) bg-(--accent)/5" : "border-(--border) hover:border-(--accent)"}`}>
           <input {...getInputProps()} />
-          <svg className="w-10 h-10 mx-auto mb-3 text-[var(--text-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-10 h-10 mx-auto mb-3 text-(--text-tertiary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          <p className="text-[var(--text-secondary)] text-sm">{isDragActive ? "Suelta los archivos aquí..." : "Arrastra archivos o haz clic"}</p>
-          <p className="text-[var(--text-tertiary)] text-xs mt-1">{currentMode.hint}</p>
+          <p className="text-(--text-secondary) text-sm">{isDragActive ? "Suelta los archivos aquí..." : "Arrastra archivos o haz clic"}</p>
+          <p className="text-(--text-tertiary) text-xs mt-1">{currentMode.hint}</p>
         </div>
 
         {/* Lista de archivos */}
         {files.length > 0 && (
-          <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] overflow-hidden">
-            <div className="border-b border-[var(--border)] p-3 bg-[var(--surface-hover)]/50 flex justify-between items-center">
-              <span className="text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">{files.length} archivo{files.length !== 1 ? "s" : ""}</span>
+          <div className="bg-(--surface) rounded-xl border border-(--border) overflow-hidden">
+            <div className="border-b border-(--border) p-3 bg-(--surface-hover)/50 flex justify-between items-center">
+              <span className="text-[11px] font-medium text-(--text-secondary) uppercase tracking-wider">{files.length} archivo{files.length !== 1 ? "s" : ""}</span>
               <button onClick={clearAll} className="text-[10px] text-red-400 hover:text-red-500 transition-colors">Limpiar</button>
             </div>
             <div className="max-h-48 overflow-y-auto">
               {files.map((file) => (
-                <div key={file.id} className="flex items-center justify-between p-3 border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-hover)]/50 transition-colors">
+                <div key={file.id} className="flex items-center justify-between p-3 border-b border-(--border) last:border-0 hover:bg-(--surface-hover)/50 transition-colors">
                   <div className="flex items-center gap-3 flex-1">
-                    <svg className="w-5 h-5 text-[var(--text-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-(--text-tertiary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/>
                     </svg>
                     <div className="flex-1">
-                      <p className="text-[12px] text-[var(--text-primary)] truncate max-w-[180px] md:max-w-[300px]">{file.name}</p>
-                      <p className="text-[10px] text-[var(--text-tertiary)]">
+                      <p className="text-[12px] text-(--text-primary) truncate max-w-[180px] md:max-w-[300px]">{file.name}</p>
+                      <p className="text-[10px] text-(--text-tertiary)">
                         {formatSize(file.size)}
                         {file.pages === null && " · contando páginas..."}
                         {file.pages > 0 && ` · ${file.pages} página${file.pages !== 1 ? "s" : ""}`}
@@ -303,22 +303,22 @@ export default function PDFConverterPage({ standalone = false }) {
         )}
 
         {mode === "extract" && files.length > 0 && (
-          <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-4">
-            <label className="block text-[var(--text-secondary)] text-sm mb-2">Páginas a extraer</label>
+          <div className="bg-(--surface) rounded-xl border border-(--border) p-4">
+            <label className="block text-(--text-secondary) text-sm mb-2">Páginas a extraer</label>
             <input
               type="text"
               value={extractPages}
               onChange={(e) => setExtractPages(e.target.value)}
               placeholder="Ej: 1,3,5  o  1-5"
-              className="w-full bg-[var(--surface-hover)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] transition"
+              className="w-full bg-(--surface-hover) border border-(--border) rounded-xl px-4 py-3 text-(--text-primary) placeholder:text-(--text-tertiary) focus:outline-hidden focus:border-(--accent) transition"
             />
-            <p className="text-[var(--text-tertiary)] text-xs mt-2">Separa con comas. Usa guiones para rangos.</p>
+            <p className="text-(--text-tertiary) text-xs mt-2">Separa con comas. Usa guiones para rangos.</p>
           </div>
         )}
 
         {mode === "optimize" && files.length > 0 && !result && (
           <div>
-            <label className="block text-[var(--text-secondary)] text-sm mb-2">Calidad de las imágenes</label>
+            <label className="block text-(--text-secondary) text-sm mb-2">Calidad de las imágenes</label>
             <div className="grid grid-cols-3 gap-2">
               {IMAGE_LEVELS.map((l) => (
                 <button
@@ -326,16 +326,16 @@ export default function PDFConverterPage({ standalone = false }) {
                   onClick={() => setImageLevel(l.id)}
                   className={`px-3 py-2 rounded-xl border text-left transition-colors ${
                     imageLevel === l.id
-                      ? "border-[var(--accent)] bg-[var(--accent)]/5"
-                      : "border-[var(--border)] hover:bg-[var(--surface-hover)]"
+                      ? "border-(--accent) bg-(--accent)/5"
+                      : "border-(--border) hover:bg-(--surface-hover)"
                   }`}
                 >
-                  <span className="block text-sm text-[var(--text-primary)]">{l.label}</span>
-                  <span className="block text-[10px] text-[var(--text-tertiary)]">{l.hint}</span>
+                  <span className="block text-sm text-(--text-primary)">{l.label}</span>
+                  <span className="block text-[10px] text-(--text-tertiary)">{l.hint}</span>
                 </button>
               ))}
             </div>
-            <p className="text-[var(--text-tertiary)] text-xs mt-2 px-1">
+            <p className="text-(--text-tertiary) text-xs mt-2 px-1">
               Limpia la estructura del PDF y recomprime las fotos. El texto, los logos y los escaneos en blanco y negro no se tocan.
             </p>
           </div>
@@ -344,22 +344,22 @@ export default function PDFConverterPage({ standalone = false }) {
         {files.length > 0 && !result && (
           <>
             <div>
-              <label className="block text-[var(--text-secondary)] text-sm mb-2">Nombre del archivo final</label>
+              <label className="block text-(--text-secondary) text-sm mb-2">Nombre del archivo final</label>
               <input
                 type="text"
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
                 placeholder="mi-documento"
-                className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] transition"
+                className="w-full bg-(--surface) border border-(--border) rounded-xl px-4 py-3 text-(--text-primary) placeholder:text-(--text-tertiary) focus:outline-hidden focus:border-(--accent) transition"
               />
             </div>
             <button
               onClick={handleProcess}
               disabled={isProcessing}
-              className={`w-full py-3 rounded-xl font-medium transition-all shadow-sm ${
+              className={`w-full py-3 rounded-xl font-medium transition-all shadow-xs ${
                 isProcessing
-                  ? "bg-[var(--surface)] text-[var(--text-tertiary)] cursor-not-allowed border border-[var(--border)]"
-                  : "bg-[var(--accent)] text-white hover:opacity-85"
+                  ? "bg-(--surface) text-(--text-tertiary) cursor-not-allowed border border-(--border)"
+                  : "bg-(--accent) text-white hover:opacity-85"
               }`}
             >
               {isProcessing ? "Procesando..." : currentMode.action}
@@ -375,13 +375,13 @@ export default function PDFConverterPage({ standalone = false }) {
         )}
 
         {isProcessing && (
-          <div className="space-y-2 bg-[var(--surface)] rounded-xl border border-[var(--border)] p-4">
+          <div className="space-y-2 bg-(--surface) rounded-xl border border-(--border) p-4">
             <div className="flex justify-between text-xs">
-              <span className="text-[var(--text-secondary)]">{status}</span>
-              <span className="text-[var(--accent)] font-mono">{progress}%</span>
+              <span className="text-(--text-secondary)">{status}</span>
+              <span className="text-(--accent) font-mono">{progress}%</span>
             </div>
-            <div className="w-full bg-[var(--surface-hover)] rounded-full h-2 overflow-hidden">
-              <div className="bg-[var(--accent)] h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+            <div className="w-full bg-(--surface-hover) rounded-full h-2 overflow-hidden">
+              <div className="bg-(--accent) h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
             </div>
           </div>
         )}
@@ -392,19 +392,19 @@ export default function PDFConverterPage({ standalone = false }) {
               <svg className="w-8 h-8 mx-auto mb-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M5 13l4 4L19 7" />
               </svg>
-              <p className="text-[var(--text-primary)] text-sm font-medium">PDF listo para descargar</p>
-              {result.note && <p className="text-[var(--text-secondary)] text-xs mt-1 font-mono">{result.note}</p>}
+              <p className="text-(--text-primary) text-sm font-medium">PDF listo para descargar</p>
+              {result.note && <p className="text-(--text-secondary) text-xs mt-1 font-mono">{result.note}</p>}
             </div>
 
-            <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-4">
+            <div className="bg-(--surface) rounded-xl border border-(--border) p-4">
               <div className="flex items-center gap-3">
-                <svg className="w-8 h-8 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 text-(--accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/>
                   <path d="M14 2v5a1 1 0 0 0 1 1h5"/>
                 </svg>
                 <div>
-                  <p className="text-sm text-[var(--text-primary)]">{customName || "documento"}.pdf</p>
-                  <p className="text-[11px] text-[var(--text-tertiary)]">
+                  <p className="text-sm text-(--text-primary)">{customName || "documento"}.pdf</p>
+                  <p className="text-[11px] text-(--text-tertiary)">
                     {result.pageCount} página{result.pageCount !== 1 ? "s" : ""} · {formatSize(result.size)}
                   </p>
                 </div>
@@ -415,7 +415,7 @@ export default function PDFConverterPage({ standalone = false }) {
               <a
                 href={result.url}
                 download={`${customName || "documento"}.pdf`}
-                className="flex-1 py-3 rounded-xl text-center bg-[var(--accent)] text-white text-sm font-medium hover:opacity-85 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl text-center bg-(--accent) text-white text-sm font-medium hover:opacity-85 transition-colors flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M12 17V3M12 17l-4-4M12 17l4-4M5 21h14" />
@@ -424,7 +424,7 @@ export default function PDFConverterPage({ standalone = false }) {
               </a>
               <button
                 onClick={clearAll}
-                className="flex-1 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] text-sm font-medium hover:bg-[var(--surface-hover)] transition-colors"
+                className="flex-1 py-2 rounded-xl bg-(--surface) border border-(--border) text-(--text-primary) text-sm font-medium hover:bg-(--surface-hover) transition-colors"
               >
                 Nuevos archivos
               </button>
@@ -432,12 +432,12 @@ export default function PDFConverterPage({ standalone = false }) {
           </div>
         )}
 
-        <div className="bg-[var(--surface)] rounded-xl p-4 text-center border border-[var(--border)]">
-          <p className="text-[var(--text-tertiary)] text-xs">Procesamiento local con pdf-lib</p>
+        <div className="bg-(--surface) rounded-xl p-4 text-center border border-(--border)">
+          <p className="text-(--text-tertiary) text-xs">Procesamiento local con pdf-lib</p>
         </div>
       </div>
 
-      <p className="text-center text-[var(--text-tertiary)] text-xs mt-8">Conversión local · Tus archivos no se suben</p>
+      <p className="text-center text-(--text-tertiary) text-xs mt-8">Conversión local · Tus archivos no se suben</p>
     </div>
   );
 

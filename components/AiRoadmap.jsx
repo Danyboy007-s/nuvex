@@ -16,7 +16,7 @@ export default function AiRoadmap() {
   return (
     <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
       <Reveal>
-        <div className="relative overflow-hidden rounded-[2rem] p-8 sm:p-12 text-white" style={{ background: "var(--ai)", boxShadow: "var(--shadow-ai)" }}>
+        <div className="relative overflow-hidden rounded-4xl p-8 sm:p-12 text-white" style={{ background: "var(--ai)", boxShadow: "var(--shadow-ai)" }}>
           {/* Círculos sólidos decorativos */}
           <span className="absolute -right-16 -bottom-24 w-72 h-72 rounded-full bg-white/10" aria-hidden="true" />
           <span className="absolute right-24 -top-10 w-24 h-24 rounded-full bg-white/10" aria-hidden="true" />

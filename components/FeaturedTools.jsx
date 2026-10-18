@@ -14,10 +14,10 @@ export default function FeaturedTools() {
     <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
       <Reveal className="flex flex-wrap items-end justify-between gap-4 mb-8">
         <div>
-          <p className="text-sm font-semibold text-[var(--accent)] mb-2">Herramientas</p>
+          <p className="text-sm font-semibold text-(--accent) mb-2">Herramientas</p>
           <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">Todo lo que necesitas, sin instalar nada</h2>
         </div>
-        <Link href="/tools" className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+        <Link href="/tools" className="text-sm font-medium text-(--text-secondary) hover:text-(--text-primary) transition-colors">
           Ver el panel completo →
         </Link>
       </Reveal>
@@ -28,7 +28,7 @@ export default function FeaturedTools() {
           <Reveal key={tool.id} delay={(i % 4) * 80} className={i === 0 ? "sm:col-span-2" : ""}>
             <Link
               href={`/tools?tool=${tool.id}`}
-              className="lift group relative flex h-full flex-col justify-between gap-8 overflow-hidden rounded-3xl bg-[var(--surface)] border border-[var(--border)] p-6"
+              className="lift group relative flex h-full flex-col justify-between gap-8 overflow-hidden rounded-3xl bg-(--surface) border border-(--border) p-6"
             >
               {/* Círculo de color sólido que crece al pasar el mouse */}
               <span
@@ -38,9 +38,9 @@ export default function FeaturedTools() {
               />
               <ToolBadge id={tool.id} size="lg" className="relative" />
               <div className="relative">
-                <p className="text-xs font-medium text-[var(--text-tertiary)] mb-1">{tool.category}</p>
+                <p className="text-xs font-medium text-(--text-tertiary) mb-1">{tool.category}</p>
                 <h3 className="text-xl font-semibold tracking-tight">{tool.name}</h3>
-                <p className="text-sm text-[var(--text-secondary)] mt-1">{tool.desc}</p>
+                <p className="text-sm text-(--text-secondary) mt-1">{tool.desc}</p>
                 <span className="inline-flex mt-4 text-sm font-semibold transition-transform group-hover:translate-x-1">
                   Abrir →
                 </span>

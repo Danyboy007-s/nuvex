@@ -9,11 +9,11 @@ export default function Custom404() {
           404
         </span>
         <h1 className="text-2xl font-semibold tracking-tight mt-10">Página no encontrada</h1>
-        <p className="text-[var(--text-secondary)] mt-2 max-w-md">
+        <p className="text-(--text-secondary) mt-2 max-w-md">
           La página que buscas no existe o cambió de lugar.
         </p>
         <div className="flex flex-wrap justify-center gap-3 mt-8">
-          <Link href="/" className="lift inline-flex h-11 items-center px-5 rounded-2xl text-sm font-semibold bg-[var(--text-primary)] text-[var(--bg)]">
+          <Link href="/" className="lift inline-flex h-11 items-center px-5 rounded-2xl text-sm font-semibold bg-(--text-primary) text-(--bg)">
             Volver al inicio
           </Link>
           <Link href="/tools?tool=assistant" className="lift inline-flex h-11 items-center px-5 rounded-2xl text-sm font-semibold text-white" style={{ background: "var(--ai)" }}>

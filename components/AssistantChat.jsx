@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import AiOrb from "./AiOrb";
 import { ToolBadge } from "./toolVisuals";
@@ -6,13 +6,19 @@ import { answer, SUGGESTIONS } from "../lib/assistant";
 import { findTool } from "../lib/tools";
 
 // Escribe y borra las sugerencias en el campo vacío, como si alguien tecleara.
+// Mientras no está activo (campo enfocado o con texto), o si el sistema pide
+// menos movimiento, muestra la primera sugerencia completa. El estado solo
+// cambia dentro de temporizadores, nunca directamente en el efecto.
 function useTypewriter(phrases, active) {
-  const [text, setText] = useState("");
+  const [text, setText] = useState(null); // null = todavía no empezó a escribir
+  const reduced = useSyncExternalStore(
+    noopSubscribe,
+    () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches,
+    () => true // en el servidor: texto fijo
+  );
+
   useEffect(() => {
-    if (!active || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
-      setText(phrases[0]);
-      return;
-    }
+    if (!active || reduced) return;
     let phrase = 0, chars = 0, deleting = false, timer;
     const tick = () => {
       const full = phrases[phrase];
@@ -25,9 +31,12 @@ function useTypewriter(phrases, active) {
     };
     timer = setTimeout(tick, 600);
     return () => clearTimeout(timer);
-  }, [phrases, active]);
-  return text;
+  }, [phrases, active, reduced]);
+
+  return active && !reduced && text !== null ? text : phrases[0];
 }
+
+const noopSubscribe = () => () => {};
 
 // Tarjeta de herramienta sugerida dentro del chat.
 function ToolSuggestion({ id, dark }) {
@@ -37,13 +46,13 @@ function ToolSuggestion({ id, dark }) {
     <Link
       href={`/tools?tool=${id}`}
       className={`lift group flex items-center gap-3 rounded-2xl p-3 pr-4 ${
-        dark ? "bg-white/10 hover:bg-white/15" : "bg-[var(--surface)] border border-[var(--border)]"
+        dark ? "bg-white/10 hover:bg-white/15" : "bg-(--surface) border border-(--border)"
       }`}
     >
       <ToolBadge id={id} />
       <span className="flex-1 min-w-0">
         <span className="block text-sm font-semibold">{tool.name}</span>
-        <span className={`block text-xs truncate ${dark ? "text-white/60" : "text-[var(--text-secondary)]"}`}>{tool.desc}</span>
+        <span className={`block text-xs truncate ${dark ? "text-white/60" : "text-(--text-secondary)"}`}>{tool.desc}</span>
       </span>
       <span className="text-sm font-medium transition-transform group-hover:translate-x-1">Abrir →</span>
     </Link>
@@ -81,8 +90,8 @@ export default function AssistantChat({ variant = "panel" }) {
   };
 
   const shell = dark
-    ? "bg-[var(--ai-ink)] text-[var(--ai-ink-text)] rounded-[2rem] p-6 sm:p-8"
-    : "bg-[var(--surface)] border border-[var(--border)] rounded-[2rem] p-5 sm:p-7";
+    ? "bg-(--ai-ink) text-(--ai-ink-text) rounded-4xl p-6 sm:p-8"
+    : "bg-(--surface) border border-(--border) rounded-4xl p-5 sm:p-7";
 
   return (
     <div className={shell} style={{ boxShadow: dark ? "var(--shadow-ai)" : "var(--shadow-md)" }}>
@@ -94,7 +103,7 @@ export default function AssistantChat({ variant = "panel" }) {
             <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Nuvex IA</h2>
             <span className="pill" style={{ background: "#d4ff3a", color: "#16161a" }}>Beta</span>
           </div>
-          <p className={`text-sm ${dark ? "text-white/60" : "text-[var(--text-secondary)]"}`}>
+          <p className={`text-sm ${dark ? "text-white/60" : "text-(--text-secondary)"}`}>
             Dime qué necesitas y te llevo a la herramienta indicada.
           </p>
         </div>
@@ -112,7 +121,7 @@ export default function AssistantChat({ variant = "panel" }) {
               </div>
             ) : (
               <div key={i} className="message-in space-y-2 max-w-[92%]">
-                <p className={`rounded-2xl rounded-bl-md px-4 py-2.5 text-sm ${dark ? "bg-white/10" : "bg-[var(--ai-soft)] text-[var(--text-primary)]"}`}>
+                <p className={`rounded-2xl rounded-bl-md px-4 py-2.5 text-sm ${dark ? "bg-white/10" : "bg-(--ai-soft) text-(--text-primary)"}`}>
                   {m.text}
                 </p>
                 {m.toolIds.map((id) => <ToolSuggestion key={id} id={id} dark={dark} />)}
@@ -131,7 +140,7 @@ export default function AssistantChat({ variant = "panel" }) {
       <form
         onSubmit={(e) => { e.preventDefault(); send(input); }}
         className={`mt-6 flex items-center gap-2 rounded-2xl p-2 pl-4 transition-shadow ${
-          dark ? "bg-white/10 focus-within:bg-white/15" : "bg-[var(--surface-secondary)] border border-[var(--border)]"
+          dark ? "bg-white/10 focus-within:bg-white/15" : "bg-(--surface-secondary) border border-(--border)"
         }`}
         style={focused ? { boxShadow: "0 0 0 3px var(--ai)" } : undefined}
       >
@@ -142,12 +151,12 @@ export default function AssistantChat({ variant = "panel" }) {
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             aria-label="Escribe lo que necesitas"
-            className="w-full bg-transparent py-2 text-[15px] outline-none placeholder:text-transparent"
+            className="w-full bg-transparent py-2 text-[15px] outline-hidden placeholder:text-transparent"
             placeholder="Escribe lo que necesitas"
           />
           {/* Sugerencia animada (solo visual: el placeholder real es fijo) */}
           {input === "" && (
-            <span aria-hidden="true" className={`pointer-events-none absolute inset-y-0 left-0 flex items-center text-[15px] truncate max-w-full ${dark ? "text-white/40" : "text-[var(--text-tertiary)]"}`}>
+            <span aria-hidden="true" className={`pointer-events-none absolute inset-y-0 left-0 flex items-center text-[15px] truncate max-w-full ${dark ? "text-white/40" : "text-(--text-tertiary)"}`}>
               {focused ? "Escribe lo que necesitas…" : placeholder}
               {!focused && <span className="caret ml-px">|</span>}
             </span>
@@ -171,7 +180,7 @@ export default function AssistantChat({ variant = "panel" }) {
               key={s}
               onClick={() => send(s)}
               className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
-                dark ? "bg-white/10 hover:bg-white/20 text-white/80" : "bg-[var(--surface-secondary)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                dark ? "bg-white/10 hover:bg-white/20 text-white/80" : "bg-(--surface-secondary) border border-(--border) text-(--text-secondary) hover:text-(--text-primary)"
               }`}
             >
               {s}
@@ -180,7 +189,7 @@ export default function AssistantChat({ variant = "panel" }) {
         </div>
       )}
 
-      <p className={`mt-5 text-[11px] ${dark ? "text-white/40" : "text-[var(--text-tertiary)]"}`}>
+      <p className={`mt-5 text-[11px] ${dark ? "text-white/40" : "text-(--text-tertiary)"}`}>
         Beta: por ahora te guía a la herramienta correcta, sin enviar nada a internet. Pronto podrá conversar y trabajar con tus archivos.
       </p>
     </div>

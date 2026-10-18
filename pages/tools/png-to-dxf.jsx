@@ -84,15 +84,15 @@ export default function PngToDxfPage({ standalone = false }) {
   const chip = (active) =>
     `px-3 py-1.5 rounded-lg text-xs border transition-colors ${
       active
-        ? "bg-[var(--accent)] text-white border-transparent"
-        : "border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
+        ? "bg-(--accent) text-white border-transparent"
+        : "border-(--border) text-(--text-secondary) hover:bg-(--surface-hover)"
     }`;
 
   const content = (
     <div className="max-w-2xl mx-auto">
       <div className="text-center mb-8">
         <div className="flex justify-center mb-3">
-          <svg className="w-10 h-10 text-[var(--accent)]" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <svg className="w-10 h-10 text-(--accent)" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
             <path d="m12.99 6.74 1.93 3.44"/>
             <path d="M19.136 12a10 10 0 0 1-14.271 0"/>
             <path d="m21 21-2.16-3.84"/>
@@ -100,14 +100,14 @@ export default function PngToDxfPage({ standalone = false }) {
             <circle cx="12" cy="5" r="2"/>
           </svg>
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-[var(--text-primary)]">Imagen a vector DXF</h1>
-        <p className="text-[var(--text-secondary)] text-sm mt-1">Convierte PNG/JPG a DXF vectorial para AutoCAD</p>
-        <div className="w-8 h-px bg-[var(--border)] mx-auto mt-3" />
+        <h1 className="text-3xl font-light tracking-tight text-(--text-primary)">Imagen a vector DXF</h1>
+        <p className="text-(--text-secondary) text-sm mt-1">Convierte PNG/JPG a DXF vectorial para AutoCAD</p>
+        <div className="w-8 h-px bg-(--border) mx-auto mt-3" />
       </div>
 
       <div className="space-y-5">
         <div 
-          className="border-2 border-dashed border-[var(--border)] rounded-2xl p-8 text-center hover:border-[var(--accent)] transition-colors cursor-pointer"
+          className="border-2 border-dashed border-(--border) rounded-2xl p-8 text-center hover:border-(--accent) transition-colors cursor-pointer"
           onClick={() => fileInputRef.current.click()}
         >
           <input
@@ -117,13 +117,13 @@ export default function PngToDxfPage({ standalone = false }) {
             accept="image/png,image/jpeg,image/webp"
             className="hidden"
           />
-          <svg className="w-10 h-10 mx-auto mb-3 text-[var(--text-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-10 h-10 mx-auto mb-3 text-(--text-tertiary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          <p className="text-[var(--text-secondary)] text-sm">
+          <p className="text-(--text-secondary) text-sm">
             {imagePreview ? "Cambiar imagen" : "Selecciona PNG, JPG o WEBP"}
           </p>
-          <p className="text-[var(--text-tertiary)] text-xs mt-1">
+          <p className="text-(--text-tertiary) text-xs mt-1">
             Ideal para logos, planos, siluetas y dibujos lineales
           </p>
         </div>
@@ -138,12 +138,12 @@ export default function PngToDxfPage({ standalone = false }) {
           <>
             {/* Original y resultado lado a lado */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] overflow-hidden">
-                <p className="p-2 text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider border-b border-[var(--border)]">Original</p>
+              <div className="bg-(--surface) rounded-xl border border-(--border) overflow-hidden">
+                <p className="p-2 text-[11px] font-medium text-(--text-secondary) uppercase tracking-wider border-b border-(--border)">Original</p>
                 <img src={imagePreview} alt="Original" className="w-full h-40 object-contain p-3" />
               </div>
-              <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] overflow-hidden">
-                <p className="p-2 text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider border-b border-[var(--border)]">Contornos DXF</p>
+              <div className="bg-(--surface) rounded-xl border border-(--border) overflow-hidden">
+                <p className="p-2 text-[11px] font-medium text-(--text-secondary) uppercase tracking-wider border-b border-(--border)">Contornos DXF</p>
                 <svg viewBox={`0 0 ${image.width} ${image.height}`} className="w-full h-40 p-3" preserveAspectRatio="xMidYMid meet">
                   <path
                     d={toSvgPath(contours)}
@@ -157,75 +157,75 @@ export default function PngToDxfPage({ standalone = false }) {
                 </svg>
               </div>
             </div>
-            <p className="text-center text-[11px] text-[var(--text-tertiary)] -mt-2">
+            <p className="text-center text-[11px] text-(--text-tertiary) -mt-2">
               {contours.length} contornos cerrados · {countVertices(contours)} puntos
               {contours.length > 2000 && " · parece una foto: funciona mejor con logos y siluetas"}
             </p>
 
-            <div className="space-y-4 bg-[var(--surface)] rounded-xl border border-[var(--border)] p-5">
+            <div className="space-y-4 bg-(--surface) rounded-xl border border-(--border) p-5">
               <div>
-                <label className="block text-[var(--text-secondary)] text-sm mb-2">Qué es la forma</label>
+                <label className="block text-(--text-secondary) text-sm mb-2">Qué es la forma</label>
                 <div className="flex flex-wrap gap-2">
                   {SHAPE_MODES.map((m) => (
                     <button key={m.id} onClick={() => setShape(m.id)} className={chip(shape === m.id)}>{m.label}</button>
                   ))}
                 </div>
-                <p className="text-[10px] text-[var(--text-tertiary)] mt-1">
+                <p className="text-[10px] text-(--text-tertiary) mt-1">
                   Automático: si la imagen tiene fondo transparente usa lo visible; si no, lo oscuro.
                 </p>
               </div>
 
               <div>
-                <label className="block text-[var(--text-secondary)] text-sm mb-2">Detalle de las curvas</label>
+                <label className="block text-(--text-secondary) text-sm mb-2">Detalle de las curvas</label>
                 <div className="flex flex-wrap gap-2">
                   {DETAIL_LEVELS.map((d) => (
                     <button key={d.value} onClick={() => setTolerance(d.value)} className={chip(tolerance === d.value)}>{d.label}</button>
                   ))}
                 </div>
-                <p className="text-[10px] text-[var(--text-tertiary)] mt-1">
-                  Más detalle sigue mejor las curvas pequeñas; "Suave" da archivos más ligeros.
+                <p className="text-[10px] text-(--text-tertiary) mt-1">
+                  Más detalle sigue mejor las curvas pequeñas; “Suave” da archivos más ligeros.
                 </p>
               </div>
 
-              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)] cursor-pointer">
-                <input type="checkbox" checked={ignoreSpecks} onChange={(e) => setIgnoreSpecks(e.target.checked)} className="accent-[var(--accent)]" />
+              <label className="flex items-center gap-2 text-sm text-(--text-secondary) cursor-pointer">
+                <input type="checkbox" checked={ignoreSpecks} onChange={(e) => setIgnoreSpecks(e.target.checked)} className="accent-(--accent)" />
                 Ignorar manchas y puntos sueltos
               </label>
 
               <div>
-                <label className="block text-[var(--text-secondary)] text-sm mb-2">Ancho del dibujo (mm)</label>
+                <label className="block text-(--text-secondary) text-sm mb-2">Ancho del dibujo (mm)</label>
                 <input
                   type="number"
                   min="1"
                   value={widthMm}
                   onChange={(e) => setWidthMm(e.target.value)}
-                  className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition"
+                  className="w-full bg-(--surface) border border-(--border) rounded-xl px-4 py-2.5 text-(--text-primary) focus:outline-hidden focus:border-(--accent) transition"
                 />
-                <p className="text-[10px] text-[var(--text-tertiary)] mt-1">
+                <p className="text-[10px] text-(--text-tertiary) mt-1">
                   Alto resultante: {(image.height * scale).toFixed(1)} mm. Por defecto, 1 píxel = 1 mm.
                 </p>
               </div>
 
               <div>
-                <label className="block text-[var(--text-secondary)] text-sm mb-2">Nombre del archivo</label>
+                <label className="block text-(--text-secondary) text-sm mb-2">Nombre del archivo</label>
                 <input
                   type="text"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   placeholder="mi-plano"
-                  className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] transition"
+                  className="w-full bg-(--surface) border border-(--border) rounded-xl px-4 py-2.5 text-(--text-primary) placeholder:text-(--text-tertiary) focus:outline-hidden focus:border-(--accent) transition"
                 />
               </div>
             </div>
 
             {contours.length === 0 ? (
-              <p className="text-center text-sm text-[var(--text-secondary)]">
-                No se detectó ninguna forma. Prueba "Lo claro" o una imagen con más contraste.
+              <p className="text-center text-sm text-(--text-secondary)">
+                No se detectó ninguna forma. Prueba “Lo claro” o una imagen con más contraste.
               </p>
             ) : (
               <button
                 onClick={downloadDxf}
-                className="w-full py-3 rounded-xl bg-[var(--accent)] text-white text-sm font-medium hover:opacity-85 transition-opacity shadow-sm flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-(--accent) text-white text-sm font-medium hover:opacity-85 transition-opacity shadow-xs flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M12 17V3M12 17l-4-4M12 17l4-4M5 21h14" />
@@ -236,19 +236,19 @@ export default function PngToDxfPage({ standalone = false }) {
 
             <button
               onClick={reset}
-              className="w-full py-2 rounded-xl text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] text-sm transition-colors"
+              className="w-full py-2 rounded-xl text-(--text-tertiary) hover:text-(--text-secondary) text-sm transition-colors"
             >
               Convertir otra imagen
             </button>
           </>
         )}
 
-        <div className="bg-[var(--surface)] rounded-xl p-4 text-center border border-[var(--border)]">
-          <p className="text-[var(--text-tertiary)] text-xs">Vectorización local · Polilíneas cerradas DXF (R12): AutoCAD, LibreCAD, Inkscape, láser y CNC</p>
+        <div className="bg-(--surface) rounded-xl p-4 text-center border border-(--border)">
+          <p className="text-(--text-tertiary) text-xs">Vectorización local · Polilíneas cerradas DXF (R12): AutoCAD, LibreCAD, Inkscape, láser y CNC</p>
         </div>
       </div>
 
-      <p className="text-center text-[var(--text-tertiary)] text-xs mt-8">Procesamiento local · Tus imágenes no se suben</p>
+      <p className="text-center text-(--text-tertiary) text-xs mt-8">Procesamiento local · Tus imágenes no se suben</p>
     </div>
   );
 

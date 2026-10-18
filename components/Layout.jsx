@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useLocalStorage } from "../lib/useLocalStorage";
 import { SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, OG_IMAGE, absoluteUrl } from "../lib/site";
 
 // Envoltorio común de todas las páginas. También arma las etiquetas de SEO:
@@ -33,28 +33,15 @@ export default function Layout({
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   };
 
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('nuvex-theme');
-    const darkMode = savedTheme === 'dark';
-    setIsDark(darkMode);
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, []);
+  // Tema guardado. La clase .dark ya la aplica antes del primer pintado el
+  // script de pages/_document.jsx; aquí solo se lee para el ícono y se cambia.
+  const [theme, setTheme] = useLocalStorage("nuvex-theme", "light");
+  const isDark = theme === "dark";
 
   const toggleTheme = () => {
-    const newDark = !isDark;
-    setIsDark(newDark);
-    localStorage.setItem('nuvex-theme', newDark ? 'dark' : 'light');
-    if (newDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    const next = isDark ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.classList.toggle("dark", next === "dark");
   };
 
   return (
@@ -86,10 +73,10 @@ export default function Layout({
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         )}
       </Head>
-      <main className="relative min-h-screen flex flex-col bg-[var(--bg)] transition-colors duration-300">
+      <main className="relative min-h-screen flex flex-col bg-(--bg) transition-colors duration-300">
         {/* Encabezado fijo arriba en todas las páginas. La IA tiene su propio
             botón violeta para que siempre esté a un clic. */}
-        <header className="sticky top-0 z-30 h-16 bg-[var(--bg)] border-b border-[var(--border)]">
+        <header className="sticky top-0 z-30 h-16 bg-(--bg) border-b border-(--border)">
           <div className={`h-full flex items-center gap-3 px-4 sm:px-6 ${wide ? "" : "max-w-6xl mx-auto"}`}>
             <Link href="/" className="flex items-center gap-2.5 mr-auto group" aria-label="Nuvex, inicio">
               <svg className="w-8 h-8 transition-transform duration-300 group-hover:-rotate-6" viewBox="0 0 512 512" aria-hidden="true">
@@ -101,7 +88,7 @@ export default function Layout({
 
             <Link
               href="/tools"
-              className="hidden sm:inline-flex h-9 items-center px-3.5 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors"
+              className="hidden sm:inline-flex h-9 items-center px-3.5 rounded-xl text-sm font-medium text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-hover) transition-colors"
             >
               Herramientas
             </Link>
@@ -117,7 +104,7 @@ export default function Layout({
             </Link>
             <button
               onClick={toggleTheme}
-              className="w-9 h-9 rounded-xl border border-[var(--border)] bg-[var(--surface)] flex items-center justify-center transition-all hover:-translate-y-px hover:shadow-[var(--shadow-md)]"
+              className="w-9 h-9 rounded-xl border border-(--border) bg-(--surface) flex items-center justify-center transition-all hover:-translate-y-px hover:shadow-(--shadow-md)"
               aria-label="Cambiar tema"
             >
               {isDark ? (

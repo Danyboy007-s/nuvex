@@ -91,19 +91,19 @@ export default function RemoveMetadataPage({ standalone = false }) {
     <div className="max-w-2xl mx-auto">
       <div className="text-center mb-8">
         <div className="flex justify-center mb-3">
-          <svg className="w-10 h-10 text-[var(--accent)]" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <svg className="w-10 h-10 text-(--accent)" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
             <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-[var(--text-primary)]">Eliminar metadatos EXIF</h1>
-        <p className="text-[var(--text-secondary)] text-sm mt-1">Limpia datos ocultos de tus imágenes (GPS, cámara, fecha)</p>
-        <div className="w-8 h-px bg-[var(--border)] mx-auto mt-3" />
+        <h1 className="text-3xl font-light tracking-tight text-(--text-primary)">Eliminar metadatos EXIF</h1>
+        <p className="text-(--text-secondary) text-sm mt-1">Limpia datos ocultos de tus imágenes (GPS, cámara, fecha)</p>
+        <div className="w-8 h-px bg-(--border) mx-auto mt-3" />
       </div>
 
       <div className="space-y-5">
         <div 
-          className="border-2 border-dashed border-[var(--border)] rounded-2xl p-8 text-center hover:border-[var(--accent)] transition-colors cursor-pointer"
+          className="border-2 border-dashed border-(--border) rounded-2xl p-8 text-center hover:border-(--accent) transition-colors cursor-pointer"
           onClick={() => fileInputRef.current.click()}
         >
           <input
@@ -113,19 +113,19 @@ export default function RemoveMetadataPage({ standalone = false }) {
             accept="image/*"
             className="hidden"
           />
-          <svg className="w-10 h-10 mx-auto mb-3 text-[var(--text-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-10 h-10 mx-auto mb-3 text-(--text-tertiary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          <p className="text-[var(--text-secondary)] text-sm">
+          <p className="text-(--text-secondary) text-sm">
             {imagePreview ? "Imagen cargada" : "Selecciona una imagen"}
           </p>
-          <p className="text-[var(--text-tertiary)] text-xs mt-1">
+          <p className="text-(--text-tertiary) text-xs mt-1">
             PNG · JPG · WEBP
           </p>
         </div>
 
         {imagePreview && (
-          <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] overflow-hidden">
+          <div className="bg-(--surface) rounded-xl border border-(--border) overflow-hidden">
             <img src={imagePreview} alt="Preview" className="w-full max-h-48 object-contain p-4" />
           </div>
         )}
@@ -134,22 +134,22 @@ export default function RemoveMetadataPage({ standalone = false }) {
           <div className="space-y-3">
             <button
               onClick={extractMetadata}
-              className="w-full py-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] text-sm font-medium hover:bg-[var(--surface-hover)] transition-colors"
+              className="w-full py-3 rounded-xl bg-(--surface) border border-(--border) text-(--text-primary) text-sm font-medium hover:bg-(--surface-hover) transition-colors"
             >
               Ver metadatos actuales
             </button>
             
             {metadata && (
-              <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-4">
-                <p className="text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Metadatos encontrados</p>
+              <div className="bg-(--surface) rounded-xl border border-(--border) p-4">
+                <p className="text-[11px] font-medium text-(--text-secondary) uppercase tracking-wider mb-2">Metadatos encontrados</p>
                 <div className="max-h-48 overflow-y-auto space-y-1">
                   {metadata.message ? (
-                    <p className="text-xs text-[var(--text-tertiary)]">{metadata.message}</p>
+                    <p className="text-xs text-(--text-tertiary)">{metadata.message}</p>
                   ) : (
                     Object.entries(metadata).slice(0, 10).map(([key, value]) => (
                       <div key={key} className="text-[11px]">
-                        <span className="text-[var(--accent)]">{key}:</span>
-                        <span className="text-[var(--text-tertiary)] ml-2">
+                        <span className="text-(--accent)">{key}:</span>
+                        <span className="text-(--text-tertiary) ml-2">
                           {typeof value === "object" ? JSON.stringify(value).substring(0, 50) : String(value).substring(0, 50)}
                         </span>
                       </div>
@@ -160,13 +160,13 @@ export default function RemoveMetadataPage({ standalone = false }) {
             )}
             
             <div>
-              <label className="block text-[var(--text-secondary)] text-sm mb-2">Nombre del archivo limpio</label>
+              <label className="block text-(--text-secondary) text-sm mb-2">Nombre del archivo limpio</label>
               <input
                 type="text"
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
                 placeholder="imagen-limpia"
-                className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] transition"
+                className="w-full bg-(--surface) border border-(--border) rounded-xl px-4 py-3 text-(--text-primary) placeholder:text-(--text-tertiary) focus:outline-hidden focus:border-(--accent) transition"
               />
             </div>
             
@@ -175,8 +175,8 @@ export default function RemoveMetadataPage({ standalone = false }) {
               disabled={processing}
               className={`w-full py-3 rounded-xl font-medium transition-all ${
                 processing
-                  ? "bg-[var(--surface)] text-[var(--text-tertiary)] cursor-not-allowed border border-[var(--border)]"
-                  : "bg-[var(--accent)] text-white hover:opacity-85 shadow-sm"
+                  ? "bg-(--surface) text-(--text-tertiary) cursor-not-allowed border border-(--border)"
+                  : "bg-(--accent) text-white hover:opacity-85 shadow-xs"
               }`}
             >
               {processing ? "Procesando..." : "Eliminar metadatos"}
@@ -191,13 +191,13 @@ export default function RemoveMetadataPage({ standalone = false }) {
               <svg className="w-6 h-6 mx-auto mb-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M5 13l4 4L19 7" />
               </svg>
-              <p className="text-[var(--text-primary)] text-sm font-medium">Imagen limpia</p>
-              <p className="text-[var(--text-tertiary)] text-xs mt-1">
+              <p className="text-(--text-primary) text-sm font-medium">Imagen limpia</p>
+              <p className="text-(--text-tertiary) text-xs mt-1">
                 {result.removed.length > 0
                   ? `Se quitó: ${result.removed.join(", ")}`
                   : "No tenía metadatos que quitar"}
               </p>
-              <p className="text-[var(--text-tertiary)] text-[11px] mt-1">
+              <p className="text-(--text-tertiary) text-[11px] mt-1">
                 {result.lossless
                   ? "Calidad intacta: la imagen no se recomprimió."
                   : "Se volvió a guardar con calidad alta (92%)."}
@@ -207,7 +207,7 @@ export default function RemoveMetadataPage({ standalone = false }) {
             
             <button
               onClick={downloadImage}
-              className="w-full py-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] text-sm font-medium hover:bg-[var(--surface-hover)] transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-(--surface) border border-(--border) text-(--text-primary) text-sm font-medium hover:bg-(--surface-hover) transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M12 17V3M12 17l-4-4M12 17l4-4M5 21h14" />
@@ -225,15 +225,15 @@ export default function RemoveMetadataPage({ standalone = false }) {
                 setCustomName("");
                 if (fileInputRef.current) fileInputRef.current.value = "";
               }}
-              className="w-full py-2 rounded-xl text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] text-sm transition-colors"
+              className="w-full py-2 rounded-xl text-(--text-tertiary) hover:text-(--text-secondary) text-sm transition-colors"
             >
               Limpiar otra imagen
             </button>
           </div>
         )}
 
-        <div className="bg-[var(--surface)] rounded-xl p-4 text-center border border-[var(--border)]">
-          <p className="text-[var(--text-tertiary)] text-xs">Elimina GPS, cámara, fecha y otros datos ocultos</p>
+        <div className="bg-(--surface) rounded-xl p-4 text-center border border-(--border)">
+          <p className="text-(--text-tertiary) text-xs">Elimina GPS, cámara, fecha y otros datos ocultos</p>
         </div>
       </div>
     </div>

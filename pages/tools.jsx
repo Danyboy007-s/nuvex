@@ -1,20 +1,16 @@
-import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Layout from "../components/Layout";
 import ToolSidebar from "../components/ToolSidebar";
 import ToolRenderer from "../components/ToolRenderer";
 import { findTool } from "../lib/tools";
+import { useLocalStorage } from "../lib/useLocalStorage";
 
-const LAST_TOOL_KEY = "nuvex-last-tool";
-
-// Lee la última herramienta usada. Versiones anteriores guardaban el objeto
-// completo ({ id, name, desc }) y ahora se guarda solo el id: se aceptan ambos.
-function readLastToolId() {
+// Versiones anteriores guardaban el objeto completo ({ id, name, desc }) y
+// ahora se guarda solo el id: se aceptan ambos.
+function parseLastToolId(saved) {
+  if (!saved || saved === "null") return null;
   try {
-    const saved = localStorage.getItem(LAST_TOOL_KEY);
-    if (!saved || saved === "null") return null;
-    if (saved.startsWith("{")) return JSON.parse(saved).id;
-    return saved;
+    return saved.startsWith("{") ? JSON.parse(saved).id : saved;
   } catch {
     return null;
   }
@@ -22,22 +18,18 @@ function readLastToolId() {
 
 export default function ToolsPage() {
   const router = useRouter();
-  const [selectedTool, setSelectedTool] = useState(null);
+  const [lastToolValue, setLastToolValue] = useLocalStorage("nuvex-last-tool");
 
-  useEffect(() => {
-    // En export estático, router.query está vacío hasta que el router está listo.
-    if (!router.isReady) return;
-
-    // Prioridad: ?tool=<id> en la URL (enlaces del inicio o compartidos),
-    // y si no, la última herramienta que usó esta persona.
-    const tool = findTool(router.query.tool) || findTool(readLastToolId());
-    if (tool) setSelectedTool(tool);
-    // Se repite si cambia ?tool= (por ejemplo, al abrir una herramienta desde Nuvex IA).
-  }, [router.isReady, router.query.tool]);
+  // La herramienta abierta se calcula (no se guarda aparte), así siempre
+  // coincide con la URL. Prioridad: ?tool=<id> (enlaces del inicio, de
+  // Nuvex IA o compartidos) y, si no hay, la última que usó esta persona.
+  // En export estático, router.query está vacío hasta que el router está listo.
+  const selectedTool = router.isReady
+    ? findTool(router.query.tool) || findTool(parseLastToolId(lastToolValue))
+    : null;
 
   const handleSelectTool = (tool) => {
-    setSelectedTool(tool);
-    localStorage.setItem(LAST_TOOL_KEY, tool.id);
+    setLastToolValue(tool.id);
     // Refleja la herramienta en la URL (sin recargar) para poder compartir el enlace.
     router.replace({ pathname: "/tools", query: { tool: tool.id } }, undefined, { shallow: true });
   };

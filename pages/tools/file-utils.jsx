@@ -84,46 +84,46 @@ export default function FileUtilsPage({ standalone = false }) {
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-8">
         <div className="flex justify-center mb-3">
-          <svg className="w-10 h-10 text-[var(--accent)]" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <svg className="w-10 h-10 text-(--accent)" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
             <path d="M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10l-3.1-3.1a2 2 0 0 0-2.814.014L6 21"/>
             <path d="m14 19.5 3-3 3 3"/>
             <path d="M17 22v-5.5"/>
             <circle cx="9" cy="9" r="2"/>
           </svg>
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-[var(--text-primary)]">Compresor de imágenes</h1>
-        <p className="text-[var(--text-secondary)] text-sm mt-1">Reduce el tamaño de tus imágenes sin perder calidad visible</p>
-        <div className="w-8 h-px bg-[var(--border)] mx-auto mt-3" />
+        <h1 className="text-3xl font-light tracking-tight text-(--text-primary)">Compresor de imágenes</h1>
+        <p className="text-(--text-secondary) text-sm mt-1">Reduce el tamaño de tus imágenes sin perder calidad visible</p>
+        <div className="w-8 h-px bg-(--border) mx-auto mt-3" />
       </div>
 
       <div className="space-y-5">
         {/* Dropzone */}
         <div 
-          className="border-2 border-dashed border-[var(--border)] rounded-2xl p-8 text-center hover:border-[var(--accent)] transition-colors cursor-pointer"
+          className="border-2 border-dashed border-(--border) rounded-2xl p-8 text-center hover:border-(--accent) transition-colors cursor-pointer"
           onClick={() => document.getElementById('file-input').click()}
         >
           <input id="file-input" type="file" onChange={handleImageUpload} accept="image/*" className="hidden" />
-          <svg className="w-10 h-10 mx-auto mb-3 text-[var(--text-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-10 h-10 mx-auto mb-3 text-(--text-tertiary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          <p className="text-[var(--text-secondary)] text-sm">{image ? image.name : "Arrastra una imagen o haz clic"}</p>
-          <p className="text-[var(--text-tertiary)] text-xs mt-1">PNG · JPG · WEBP</p>
+          <p className="text-(--text-secondary) text-sm">{image ? image.name : "Arrastra una imagen o haz clic"}</p>
+          <p className="text-(--text-tertiary) text-xs mt-1">PNG · JPG · WEBP</p>
         </div>
 
         {/* Configuración de compresión */}
         {image && !compressed && (
-          <div className="space-y-4 bg-[var(--surface)] rounded-xl border border-[var(--border)] p-5">
+          <div className="space-y-4 bg-(--surface) rounded-xl border border-(--border) p-5">
             <div>
-              <label className="block text-[var(--text-secondary)] text-sm mb-2">Formato de salida</label>
+              <label className="block text-(--text-secondary) text-sm mb-2">Formato de salida</label>
               <div className="flex flex-wrap gap-2">
                 {OUTPUT_FORMATS.map((f) => (
-                  <button key={f.id} onClick={() => setFormat(f.id)} className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${format === f.id ? "bg-[var(--accent)] text-white border-transparent" : "border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"}`}>
+                  <button key={f.id} onClick={() => setFormat(f.id)} className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${format === f.id ? "bg-(--accent) text-white border-transparent" : "border-(--border) text-(--text-secondary) hover:bg-(--surface-hover)"}`}>
                     {f.label}
                   </button>
                 ))}
               </div>
               {outputMime === "image/png" && (
-                <p className="text-[11px] text-[var(--text-tertiary)] mt-2">
+                <p className="text-[11px] text-(--text-tertiary) mt-2">
                   PNG no tiene calidad ajustable: para reducir más el peso, elige WEBP (conserva la transparencia) o reduce el tamaño.
                 </p>
               )}
@@ -131,7 +131,7 @@ export default function FileUtilsPage({ standalone = false }) {
 
             {supportsQuality(outputMime) && (
               <div>
-                <label className="block text-[var(--text-secondary)] text-sm mb-2">Calidad: {Math.round(quality * 100)}%</label>
+                <label className="block text-(--text-secondary) text-sm mb-2">Calidad: {Math.round(quality * 100)}%</label>
                 <input
                   type="range"
                   min="0.3"
@@ -139,9 +139,9 @@ export default function FileUtilsPage({ standalone = false }) {
                   step="0.05"
                   value={quality}
                   onChange={(e) => setQuality(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-[var(--surface-hover)] rounded-lg"
+                  className="w-full h-2 bg-(--surface-hover) rounded-lg"
                 />
-                <div className="flex justify-between text-[10px] text-[var(--text-tertiary)] mt-1">
+                <div className="flex justify-between text-[10px] text-(--text-tertiary) mt-1">
                   <span>Más ligera</span>
                   <span>Recomendado: 75–85%</span>
                   <span>Más calidad</span>
@@ -150,10 +150,10 @@ export default function FileUtilsPage({ standalone = false }) {
             )}
 
             <div>
-              <label className="block text-[var(--text-secondary)] text-sm mb-2">Tamaño máximo (lado mayor)</label>
+              <label className="block text-(--text-secondary) text-sm mb-2">Tamaño máximo (lado mayor)</label>
               <div className="flex flex-wrap gap-2">
                 {SIZE_PRESETS.map((p) => (
-                  <button key={p.label} onClick={() => setMaxSide(p.value)} className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${maxSide === p.value ? "bg-[var(--accent)] text-white border-transparent" : "border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"}`}>
+                  <button key={p.label} onClick={() => setMaxSide(p.value)} className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${maxSide === p.value ? "bg-(--accent) text-white border-transparent" : "border-(--border) text-(--text-secondary) hover:bg-(--surface-hover)"}`}>
                     {p.label}
                   </button>
                 ))}
@@ -161,20 +161,20 @@ export default function FileUtilsPage({ standalone = false }) {
             </div>
 
             <div>
-              <label className="block text-[var(--text-secondary)] text-sm mb-2">Nombre del archivo</label>
+              <label className="block text-(--text-secondary) text-sm mb-2">Nombre del archivo</label>
               <input
                 type="text"
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
                 placeholder="imagen-comprimida"
-                className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] transition"
+                className="w-full bg-(--surface) border border-(--border) rounded-xl px-4 py-3 text-(--text-primary) placeholder:text-(--text-tertiary) focus:outline-hidden focus:border-(--accent) transition"
               />
             </div>
             
             <button
               onClick={handleCompress}
               disabled={compressing}
-              className="w-full py-3 rounded-xl bg-[var(--accent)] text-white text-sm font-medium hover:opacity-85 transition-opacity shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 rounded-xl bg-(--accent) text-white text-sm font-medium hover:opacity-85 transition-opacity shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {compressing ? "Comprimiendo..." : "Comprimir imagen"}
             </button>
@@ -186,23 +186,23 @@ export default function FileUtilsPage({ standalone = false }) {
         {originalPreview && compressedPreview && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] overflow-hidden">
-                <div className="p-3 border-b border-[var(--border)] bg-[var(--surface-hover)]/50">
-                  <p className="text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Original</p>
+              <div className="bg-(--surface) rounded-xl border border-(--border) overflow-hidden">
+                <div className="p-3 border-b border-(--border) bg-(--surface-hover)/50">
+                  <p className="text-[11px] font-medium text-(--text-secondary) uppercase tracking-wider">Original</p>
                 </div>
                 <img src={originalPreview} alt="Original" className="w-full h-auto object-cover" />
-                <div className="p-3 border-t border-[var(--border)] bg-[var(--surface-hover)]/30">
-                  <p className="text-xs text-[var(--text-tertiary)]">{formatBytes(originalSize)}</p>
+                <div className="p-3 border-t border-(--border) bg-(--surface-hover)/30">
+                  <p className="text-xs text-(--text-tertiary)">{formatBytes(originalSize)}</p>
                 </div>
               </div>
               
-              <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] overflow-hidden">
-                <div className="p-3 border-b border-[var(--border)] bg-[var(--surface-hover)]/50">
-                  <p className="text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">Comprimida</p>
+              <div className="bg-(--surface) rounded-xl border border-(--border) overflow-hidden">
+                <div className="p-3 border-b border-(--border) bg-(--surface-hover)/50">
+                  <p className="text-[11px] font-medium text-(--text-secondary) uppercase tracking-wider">Comprimida</p>
                 </div>
                 <img src={compressedPreview} alt="Compressed" className="w-full h-auto object-cover" />
-                <div className="p-3 border-t border-[var(--border)] bg-[var(--surface-hover)]/30">
-                  <p className="text-xs text-[var(--text-tertiary)]">{formatBytes(compressedSize)}</p>
+                <div className="p-3 border-t border-(--border) bg-(--surface-hover)/30">
+                  <p className="text-xs text-(--text-tertiary)">{formatBytes(compressedSize)}</p>
                 </div>
               </div>
             </div>
@@ -213,13 +213,13 @@ export default function FileUtilsPage({ standalone = false }) {
               </svg>
               {compressed.keptOriginal ? (
                 <>
-                  <p className="text-[var(--text-primary)] text-sm font-medium">Esta imagen ya estaba optimizada</p>
-                  <p className="text-[var(--text-tertiary)] text-xs mt-1">Comprimirla de nuevo la hacía más pesada, así que se conserva la original. Prueba con menos calidad, WEBP o un tamaño menor.</p>
+                  <p className="text-(--text-primary) text-sm font-medium">Esta imagen ya estaba optimizada</p>
+                  <p className="text-(--text-tertiary) text-xs mt-1">Comprimirla de nuevo la hacía más pesada, así que se conserva la original. Prueba con menos calidad, WEBP o un tamaño menor.</p>
                 </>
               ) : (
                 <>
-                  <p className="text-[var(--text-primary)] text-sm font-medium">¡Compresión completada!</p>
-                  <p className="text-[var(--text-tertiary)] text-xs mt-1">
+                  <p className="text-(--text-primary) text-sm font-medium">¡Compresión completada!</p>
+                  <p className="text-(--text-tertiary) text-xs mt-1">
                     {compressedSize < originalSize
                       ? `Reducción del ${getSavings()}% · Ahorraste ${formatBytes(originalSize - compressedSize)}`
                       : `Pesa ${formatBytes(compressedSize - originalSize)} más que la original (por el cambio de formato)`}
@@ -231,7 +231,7 @@ export default function FileUtilsPage({ standalone = false }) {
             
             <button
               onClick={download}
-              className="block w-full py-3 rounded-xl text-center bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] text-sm font-medium hover:bg-[var(--surface-hover)] transition-colors flex items-center justify-center gap-2"
+              className="block w-full py-3 rounded-xl text-center bg-(--surface) border border-(--border) text-(--text-primary) text-sm font-medium hover:bg-(--surface-hover) transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M12 17V3M12 17l-4-4M12 17l4-4M5 21h14" />
@@ -242,7 +242,7 @@ export default function FileUtilsPage({ standalone = false }) {
             {/* Vuelve a mostrar los ajustes con la misma imagen */}
             <button
               onClick={() => { setCompressed(null); setCompressedPreview(null); }}
-              className="w-full py-2 rounded-xl text-[var(--accent)] hover:opacity-80 text-sm transition-opacity"
+              className="w-full py-2 rounded-xl text-(--accent) hover:opacity-80 text-sm transition-opacity"
             >
               Cambiar ajustes y volver a comprimir
             </button>
@@ -259,7 +259,7 @@ export default function FileUtilsPage({ standalone = false }) {
                 setError(null);
                 document.getElementById('file-input').value = "";
               }}
-              className="w-full py-2 rounded-xl text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] text-sm transition-colors"
+              className="w-full py-2 rounded-xl text-(--text-tertiary) hover:text-(--text-secondary) text-sm transition-colors"
             >
               Comprimir otra imagen
             </button>
@@ -267,12 +267,12 @@ export default function FileUtilsPage({ standalone = false }) {
         )}
 
         {/* Información adicional */}
-        <div className="bg-[var(--surface)] rounded-xl p-4 text-center border border-[var(--border)]">
-          <p className="text-[var(--text-tertiary)] text-xs">Compresión local · Tus imágenes no se suben</p>
+        <div className="bg-(--surface) rounded-xl p-4 text-center border border-(--border)">
+          <p className="text-(--text-tertiary) text-xs">Compresión local · Tus imágenes no se suben</p>
         </div>
       </div>
 
-      <p className="text-center text-[var(--text-tertiary)] text-xs mt-8">Procesamiento local · Tus archivos no se suben</p>
+      <p className="text-center text-(--text-tertiary) text-xs mt-8">Procesamiento local · Tus archivos no se suben</p>
     </div>
   );
 

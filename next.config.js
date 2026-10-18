@@ -2,6 +2,8 @@
 // se pueda instalar y funcione sin conexión. Se desactiva en desarrollo para
 // que la caché no esconda los cambios mientras programas.
 // Usa @ducanh2912/next-pwa, el reemplazo mantenido del antiguo `next-pwa`.
+// Este plugin funciona con webpack: por eso `dev` y `build` usan --webpack
+// (Next 16 usa Turbopack por defecto).
 const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   register: true,
@@ -19,9 +21,8 @@ const nextConfig = {
   // No hay servidor; todas las herramientas corren en el navegador.
   output: 'export',
   reactStrictMode: true,
-  compress: true,
-  poweredByHeader: false,
-  generateEtags: false,
+  // (compress, poweredByHeader y generateEtags no aplican: sin servidor de
+  // Next, la compresión y las cabeceras las pone Vercel.)
   images: {
     // next/image necesita un servidor para optimizar; en export estático no hay.
     unoptimized: true,

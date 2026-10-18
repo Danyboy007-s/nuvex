@@ -116,11 +116,16 @@ El sistema de diseño está en `styles/globals.css` (comentado al principio).
 
 ## Tecnología
 
-- **Next.js 15.5** (Pages Router) y **React 18**. Todavía no se usa Next 16 porque compila con Turbopack, y el plugin de PWA necesita webpack.
-- **Tailwind CSS**: los colores del tema son variables CSS (`--bg`, `--surface`, `--accent`...) definidas en `styles/globals.css`, con modo oscuro mediante la clase `.dark`.
+- **Next.js 16** (Pages Router) y **React 19**.
+  - `dev` y `build` usan `--webpack`, porque el plugin de PWA necesita webpack (Next 16 usa Turbopack por defecto).
+- **Tailwind CSS 4**: la configuración está en `styles/globals.css` (`@theme`). Ya no existe `tailwind.config.js`.
+  - Los colores del tema son variables CSS (`--bg`, `--surface`, `--accent`...), con modo oscuro mediante la clase `.dark`.
+  - Clases como `bg-(--surface)` son la forma corta de Tailwind 4 para `bg-[var(--surface)]`.
+  - Ojo: en Tailwind 4, un estilo propio fuera de `@layer` le gana a todas las clases utilitarias.
 - **@ducanh2912/next-pwa** (reemplazo mantenido de `next-pwa`): la app se puede instalar y funciona sin conexión.
 - **Exportación estática** (`output: 'export'` en `next.config.js`): el build genera HTML/JS plano en `out/`, sin servidor.
-- **Jest + Testing Library** para los tests.
+- **Jest 30 + Testing Library** para los tests.
+- **ESLint 9** con las reglas de Next.js (`eslint.config.mjs`), incluidas las de React Hooks. Para leer `localStorage` sin efectos se usa `lib/useLocalStorage.js` (`useSyncExternalStore`).
 
 ## Estructura
 
@@ -148,6 +153,7 @@ nuvex/
 ├── lib/                 # Lógica sin interfaz, fácil de probar
 │   ├── tools.js           # Registro único de herramientas (menú, carga y textos SEO)
 │   ├── assistant.js       # Respuestas de Nuvex IA (hoy local, por palabras clave)
+│   ├── useLocalStorage.js # Hook para leer/guardar preferencias (tema, menú...)
 │   ├── site.js            # Dominio, título y descripción del sitio (SEO)
 │   ├── pdf.js             # Lógica del PDF Converter
 │   ├── image.js           # Compresor y Eliminar fondo
@@ -157,7 +163,9 @@ nuvex/
 ├── scripts/
 │   ├── generate-icons.py  # Regenera los íconos PNG/ICO y la imagen para redes
 │   └── generate-sitemap.mjs # Crea sitemap.xml y robots.txt (corre antes de cada build)
-├── styles/globals.css   # Variables de tema y estilos globales
+├── styles/globals.css   # Diseño: variables de tema, configuración de Tailwind 4 y animaciones
+├── eslint.config.mjs    # Reglas de ESLint
+├── vercel.json          # Ajustes de Vercel (archivo de verificación de Google)
 └── __tests__/           # Tests (components/ y lib/)
 ```
 
@@ -185,13 +193,14 @@ nuvex/
 
 ## Desarrollo
 
-Requisitos: Node.js 18 o superior (probado con 22).
+Requisitos: Node.js 20.9 o superior (probado con 22).
 
 ```bash
 npm install       # instalar dependencias
 npm run dev       # servidor local en http://localhost:3000
 npm run build     # build de producción; el sitio estático queda en out/
 npm test          # correr los tests
+npm run lint      # revisar el código con ESLint
 ```
 
 > El service worker (`public/sw.js`, `public/workbox-*.js`) lo genera el plugin de PWA en cada build y está en `.gitignore`. No se edita a mano.
@@ -236,7 +245,10 @@ El sitio está en **Vercel**: **https://nuvex-beta.vercel.app**
 - [x] Actualizar Next.js (14.0.3 → 15.5.28).
 - [x] PDF Converter: WEBP y otros formatos, TXT largos, errores claros.
 - [x] PDF Converter: recomprimir imágenes al optimizar (requiere pdf.js para renderizar páginas).
-- [ ] Revisar los avisos de `npm audit` que quedan: son de herramientas que solo se usan al compilar (workbox, postcss interno de Next), no del sitio publicado.
+- [x] Revisar los avisos de `npm audit`. Quedan 25, todos originados en dos paquetes internos de herramientas de compilación y tests: `braces` (vía workbox, ESLint y Jest) y `sprintf-js` (vía Jest).
+  - **No existe versión corregida** de ninguno; se revisará cuando la publiquen.
+  - No llegan al sitio publicado.
+  - `serialize-javascript` se fuerza a 7.1.2 con `overrides` en `package.json`.
 - [x] Limpiar metadatos: conservar el formato original (hoy todo sale como PNG y pesa más).
 - [x] `/tools`: sincronizar el estado colapsado del menú con el margen del contenido (ahora el estado vive solo en `ToolSidebar`).
 - [x] Las tarjetas del inicio abren directamente su herramienta (`/tools?tool=<id>`).
@@ -249,8 +261,10 @@ El sitio está en **Vercel**: **https://nuvex-beta.vercel.app**
 - [x] Animaciones de las tarjetas del inicio (`FeaturedTools`): siguen ocultas hasta que carga JavaScript.
 - [x] Agregar los íconos que faltan en `public/` (`icon-192.png`, `icon-512.png`, `favicon.ico`/`favicon.svg`).
 - [x] PNG/JPG a DXF: los contornos salen pixelados (escalones) y pesados; falta simplificarlos.
-- [ ] Actualizaciones mayores disponibles (React 19, Next 16, Tailwind 4, Jest 30); no urgen.
-- [ ] Agregar configuración de ESLint.
+- [x] Actualizaciones mayores: Next 16, React 19, Tailwind 4, Jest 30 y Testing Library 16. Siguen en versiones anteriores, a propósito:
+  - `react-dropzone` (14): la 20 no aporta nada que se use y exige Node 22.
+  - ESLint (9): la 10 es muy reciente para los plugins de Next.
+- [x] Agregar configuración de ESLint (`npm run lint`, sin errores ni avisos).
 - [x] Confirmar el dominio que usan `sitemap.xml`, `robots.txt` y el canonical (`nuvex.app`).
 - [x] Migrar a Vercel (https://nuvex-beta.vercel.app).
 - [ ] Dar de baja el proyecto de Cloudflare Pages (después de comprobar Vercel).
@@ -258,6 +272,19 @@ El sitio está en **Vercel**: **https://nuvex-beta.vercel.app**
 - [ ] Eliminar fondo con IA real (por ejemplo `@imgly/background-removal`, que corre en el navegador).
 
 ## Registro de cambios
+
+### 2026-10-18 (mantenimiento)
+- **Actualizaciones**: Next 15 → 16, React 18 → 19, Tailwind 3 → 4 (con su herramienta oficial de migración), Jest 29 → 30 y Testing Library 14 → 16.
+  - Se comprobó con capturas que el sitio se ve igual.
+- **ESLint** configurado; todo el código pasa sin errores ni avisos.
+- **Lo que destapó ESLint**:
+  - Eliminar fondo: la vista previa podía no actualizarse al mover la tolerancia, porque el `<img>` reutilizado no volvía a disparar `load`.
+  - Eliminar fondo: el color elegido con clic se medía contra el recuadro y no contra la imagen.
+  - Tema, menú lateral y última herramienta ahora se leen con `useLocalStorage` (`useSyncExternalStore`), sin `setState` dentro de efectos.
+  - La herramienta abierta en `/tools` se calcula desde la URL en vez de copiarse al estado.
+  - Generador QR: la vista previa depende de su configuración completa.
+- **`npm audit`**: de 46 avisos a 25, ninguno con solución publicada (ver Pendientes).
+- `next.config.js`: se quitaron opciones que no aplican a un sitio estático.
 
 ### 2026-10-17 (Vercel)
 - **El sitio se mudó a Vercel:** https://nuvex-beta.vercel.app. El dominio en `lib/site.js` (canonical, sitemap, imagen para redes) ahora apunta ahí.

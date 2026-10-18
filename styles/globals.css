@@ -1,9 +1,30 @@
 /* La fuente Inter se carga con next/font en pages/_app.jsx (variable --font-inter):
    se descarga en el build y se sirve desde el propio sitio, sin bloquear el pintado. */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* Tailwind 4: la configuración vive aquí (antes estaba en tailwind.config.js).
+   El modo oscuro se activa con la clase .dark en <html> (pages/_document.jsx). */
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: var(--font-inter), Inter, system-ui, -apple-system, sans-serif;
+
+  --radius-3xl: 1.75rem;
+  --radius-4xl: 2rem;
+}
+
+/* En Tailwind 4 el borde por defecto es del color del texto. Aquí se usa el
+   color de borde del tema, como en el resto del sitio. */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--border);
+  }
+}
 
 /* ============================================
    SISTEMA DE DISEÑO DE NUVEX
@@ -70,11 +91,9 @@
 /* ============================================
    BASE
    ============================================ */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* El reset (margin/padding 0, box-sizing) ya lo hace Tailwind en su capa base.
+   No se repite aquí: en Tailwind 4 un estilo fuera de capas le gana a todas
+   las clases utilitarias y anularía p-6, mt-4, etc. */
 
 body {
   font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
