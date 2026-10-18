@@ -17,19 +17,20 @@ const withPWA = require('@ducanh2912/next-pwa').default({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Exportación estática: `npm run build` deja HTML/JS plano en out/.
-  // No hay servidor; todas las herramientas corren en el navegador.
-  output: 'export',
+  // Ya no es exportación estática: Nuvex IA necesita una ruta de servidor
+  // (pages/api/assistant.js) para guardar la clave de Gemini lejos del navegador.
+  // Las páginas siguen generándose como HTML estático en el build, y todas las
+  // herramientas siguen corriendo en el navegador.
   reactStrictMode: true,
-  // (compress, poweredByHeader y generateEtags no aplican: sin servidor de
-  // Next, la compresión y las cabeceras las pone Vercel.)
+  poweredByHeader: false,
   images: {
-    // next/image necesita un servidor para optimizar; en export estático no hay.
+    // No se usa next/image: las imágenes son las que sube cada persona.
     unoptimized: true,
   },
   compiler: {
-    // Quita los console.log del build de producción.
-    removeConsole: process.env.NODE_ENV === 'production',
+    // Quita los console.log del build de producción, pero conserva los
+    // errores y avisos: son los que aparecen en Vercel → Logs.
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
   webpack: (config, { isServer }) => {
     // Algunas librerías (pdf-lib, exifr...) mencionan módulos de Node.

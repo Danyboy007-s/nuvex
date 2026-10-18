@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import AiOrb from "./AiOrb";
 import { ToolBadge } from "./toolVisuals";
-import { answer, SUGGESTIONS } from "../lib/assistant";
+import { askAssistant, SUGGESTIONS } from "../lib/assistant";
 import { findTool } from "../lib/tools";
 
 // Escribe y borra las sugerencias en el campo vacío, como si alguien tecleara.
@@ -76,17 +76,18 @@ export default function AssistantChat({ variant = "panel" }) {
     listRef.current?.scrollTo?.({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, thinking]);
 
-  const send = (text) => {
+  const send = async (text) => {
     const clean = text.trim();
     if (!clean || thinking) return;
-    setMessages((m) => [...m, { from: "user", text: clean }]);
+    const history = [...messages, { from: "user", text: clean }];
+    setMessages(history);
     setInput("");
     setThinking(true);
-    // Pausa breve para que la respuesta se sienta como una conversación.
-    setTimeout(() => {
-      setMessages((m) => [...m, { from: "ai", ...answer(clean) }]);
-      setThinking(false);
-    }, 550);
+    // Gemini (o el asistente local si la IA no está disponible). La pausa
+    // mínima evita que una respuesta instantánea se sienta brusca.
+    const [reply] = await Promise.all([askAssistant(history), new Promise((r) => setTimeout(r, 400))]);
+    setMessages((m) => [...m, { from: "ai", ...reply }]);
+    setThinking(false);
   };
 
   const shell = dark
@@ -104,7 +105,7 @@ export default function AssistantChat({ variant = "panel" }) {
             <span className="pill" style={{ background: "#d4ff3a", color: "#16161a" }}>Beta</span>
           </div>
           <p className={`text-sm ${dark ? "text-white/60" : "text-(--text-secondary)"}`}>
-            Dime qué necesitas y te llevo a la herramienta indicada.
+            Cuéntame qué necesitas y te llevo a la herramienta indicada.
           </p>
         </div>
       </div>
@@ -125,6 +126,7 @@ export default function AssistantChat({ variant = "panel" }) {
                   {m.text}
                 </p>
                 {m.toolIds.map((id) => <ToolSuggestion key={id} id={id} dark={dark} />)}
+                {m.notice && <p className={`text-[11px] ${dark ? "text-white/40" : "text-(--text-tertiary)"}`}>{m.notice}</p>}
               </div>
             )
           )}
@@ -190,7 +192,7 @@ export default function AssistantChat({ variant = "panel" }) {
       )}
 
       <p className={`mt-5 text-[11px] ${dark ? "text-white/40" : "text-(--text-tertiary)"}`}>
-        Beta: por ahora te guía a la herramienta correcta, sin enviar nada a internet. Pronto podrá conversar y trabajar con tus archivos.
+        Beta con Gemini de Google: lo que escribes en este chat se envía a Google para responderte. Tus archivos nunca se suben.
       </p>
     </div>
   );

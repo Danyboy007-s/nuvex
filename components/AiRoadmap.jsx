@@ -6,7 +6,7 @@ import AiOrb from "./AiOrb";
 // Lo marcado "Próximamente" todavía no existe (se activa al conectar la IA
 // en el servidor, ver README → Pendientes); no se presenta como disponible.
 const ITEMS = [
-  { title: "Te guía a la herramienta correcta", text: "Escribe lo que necesitas con tus palabras.", ready: true },
+  { title: "Conversa y te guía", text: "Escribe lo que necesitas con tus palabras y te lleva a la herramienta correcta.", ready: true },
   { title: "Quitar fondos con IA", text: "Personas, mascotas y productos, no solo fondos de un color.", ready: false },
   { title: "Pregúntale a tus PDFs", text: "Resúmenes y respuestas sobre tus documentos.", ready: false },
   { title: "Textos que suenan humanos", text: "Reescritura natural con IA, en tu idioma.", ready: false },

@@ -107,12 +107,36 @@ El sistema de diseño está en `styles/globals.css` (comentado al principio).
 
 ### Nuvex IA
 
-- **Dónde aparece:** es lo primero de la portada y del menú de `/tools`, y tiene su propia URL, `/tools/assistant`.
-- **Qué hace hoy:** es una versión **local**. `lib/assistant.js` reconoce pedidos por palabras clave y sugiere la herramienta indicada.
-  - No envía nada a internet.
-  - La interfaz lo dice ("Beta").
-- **Para conectar una IA real:** reemplaza `answer()` por una llamada a una ruta `/api` del servidor que devuelva el mismo formato, `{ text, toolIds }`. La interfaz no cambia.
+**Dónde aparece:** es lo primero de la portada y del menú de `/tools`, y tiene su propia URL, `/tools/assistant`.
+
+**Cómo funciona:**
+
+```
+AssistantChat.jsx ──► lib/assistant.js (askAssistant) ──► POST /api/assistant ──► Gemini
+                              │ si falla                         (pages/api/assistant.js
+                              ▼                                   + lib/assistantAi.js)
+                     answer(): asistente local por palabras clave
+```
+
+- **Gemini** responde en JSON estructurado: `{ text, toolIds }`. Solo puede sugerir ids de herramientas que existen; los demás se descartan.
+- **La clave de API vive solo en el servidor** (`GEMINI_API_KEY`) y nunca llega al navegador.
+- **Si la IA no está disponible,** el chat responde igual con el asistente local de palabras clave. Pasa si falta la clave, si se cae Google, si no hay internet o si se alcanzó el límite.
+- **Límites contra abuso:**
+  - 10 turnos de historial y 500 caracteres por mensaje.
+  - Respuestas cortas.
+  - 8 preguntas por minuto y 100 por día por visitante. Se cuentan en memoria y cada servidor lleva su propia cuenta.
+  - El tope real lo pone la cuota de Google AI Studio.
+- **Privacidad:** lo que la persona escribe en el chat se envía a Google; sus archivos, nunca. La nota del chat lo dice.
 - **Lo marcado "Próximamente"** en la portada (`AiRoadmap.jsx`) todavía no existe.
+
+**Variables de entorno** (Vercel → Settings → Environment Variables):
+
+| Variable | Obligatoria | Para qué |
+|---|---|---|
+| `GEMINI_API_KEY` | Sí | Clave de [Google AI Studio](https://aistudio.google.com/apikey). |
+| `GEMINI_MODEL` | No | Modelo de Gemini. Por defecto `gemini-3.5-flash-lite`. |
+
+Para probar la IA en local, crea `.env.local` con `GEMINI_API_KEY=...`. Ese archivo está en `.gitignore`: nunca se sube.
 
 ## Tecnología
 
@@ -123,7 +147,10 @@ El sistema de diseño está en `styles/globals.css` (comentado al principio).
   - Clases como `bg-(--surface)` son la forma corta de Tailwind 4 para `bg-[var(--surface)]`.
   - Ojo: en Tailwind 4, un estilo propio fuera de `@layer` le gana a todas las clases utilitarias.
 - **@ducanh2912/next-pwa** (reemplazo mantenido de `next-pwa`): la app se puede instalar y funciona sin conexión.
-- **Exportación estática** (`output: 'export'` en `next.config.js`): el build genera HTML/JS plano en `out/`, sin servidor.
+- **Páginas estáticas + una ruta de servidor:**
+  - Todas las páginas se generan como HTML en el build.
+  - La única parte con servidor es `/api/assistant` (Nuvex IA), que corre en Vercel.
+  - Antes era exportación estática pura (`output: 'export'`).
 - **Jest 30 + Testing Library** para los tests.
 - **ESLint 9** con las reglas de Next.js (`eslint.config.mjs`), incluidas las de React Hooks. Para leer `localStorage` sin efectos se usa `lib/useLocalStorage.js` (`useSyncExternalStore`).
 
@@ -146,13 +173,15 @@ nuvex/
 │   └── ToolRenderer.jsx   # Carga dinámicamente la herramienta elegida
 ├── pages/
 │   ├── index.jsx          # Página de inicio (/)
+│   ├── api/assistant.js   # Ruta de servidor de Nuvex IA (Gemini)
 │   ├── tools.jsx          # Panel de herramientas (/tools)
 │   ├── 404.jsx
 │   ├── _app.jsx / _document.jsx
 │   └── tools/             # Una herramienta por archivo (ver tabla)
 ├── lib/                 # Lógica sin interfaz, fácil de probar
 │   ├── tools.js           # Registro único de herramientas (menú, carga y textos SEO)
-│   ├── assistant.js       # Respuestas de Nuvex IA (hoy local, por palabras clave)
+│   ├── assistant.js       # Nuvex IA en el navegador: llama a /api y, si falla, responde por palabras clave
+│   ├── assistantAi.js     # Nuvex IA en el servidor: prompt, Gemini, validación y límites
 │   ├── useLocalStorage.js # Hook para leer/guardar preferencias (tema, menú...)
 │   ├── site.js            # Dominio, título y descripción del sitio (SEO)
 │   ├── pdf.js             # Lógica del PDF Converter
@@ -165,7 +194,6 @@ nuvex/
 │   └── generate-sitemap.mjs # Crea sitemap.xml y robots.txt (corre antes de cada build)
 ├── styles/globals.css   # Diseño: variables de tema, configuración de Tailwind 4 y animaciones
 ├── eslint.config.mjs    # Reglas de ESLint
-├── vercel.json          # Ajustes de Vercel (archivo de verificación de Google)
 └── __tests__/           # Tests (components/ y lib/)
 ```
 
@@ -221,7 +249,8 @@ El sitio está en **Vercel**: **https://nuvex-beta.vercel.app**
 
 - **Despliegue automático:** cada `git push` a `main` publica una versión nueva. Vercel detecta Next.js solo, sin configuración extra.
 - **Ramas de prueba:** las demás ramas generan una vista previa con su propia URL. Así se puede revisar un cambio antes de unirlo a `main`.
-- **Compilación:** usa `npm run build`, que antes genera el sitemap (`prebuild`) y deja el sitio estático en `out/`.
+- **Compilación:** usa `npm run build`, que antes genera el sitemap (`prebuild`).
+- **Prueba local de producción:** `npm run build` y luego `npm start`. Ya no se genera `out/`.
 - **Historial:** hasta octubre de 2026 el sitio estuvo en Cloudflare Pages (`nuvex-5d7.pages.dev`).
 
 ### Dominio y SEO
@@ -235,7 +264,7 @@ El sitio está en **Vercel**: **https://nuvex-beta.vercel.app**
 - **`public/sitemap.xml` y `public/robots.txt` se generan solos** en cada `npm run build` (`prebuild`). No los edites a mano.
 - **Google Search Console:** el sitio se verifica con dos métodos. No borres ninguno de los dos.
   - La etiqueta `google-site-verification` de `pages/_document.jsx`.
-  - El archivo `public/google4b1e7e258e65d09d.html`. Vercel sirve los `.html` sin la extensión, así que `vercel.json` hace que también responda con el nombre exacto que pide Google.
+  - El archivo `public/google4b1e7e258e65d09d.html`.
   - El sitemap que se envía es `sitemap.xml`.
 
 ---
@@ -268,10 +297,22 @@ El sitio está en **Vercel**: **https://nuvex-beta.vercel.app**
 - [x] Confirmar el dominio que usan `sitemap.xml`, `robots.txt` y el canonical (`nuvex.app`).
 - [x] Migrar a Vercel (https://nuvex-beta.vercel.app).
 - [ ] Dar de baja el proyecto de Cloudflare Pages (después de comprobar Vercel).
-- [ ] Integrar IA con una ruta `/api` en el servidor (la clave de la API nunca debe ir en el navegador). La interfaz ya existe: solo hay que cambiar `answer()` en `lib/assistant.js`.
+- [x] Integrar IA con una ruta `/api` en el servidor (Gemini, `GEMINI_API_KEY` en Vercel).
+- [ ] Nuvex IA: que pueda trabajar con los archivos (por ejemplo, comprimir una foto desde el chat).
 - [ ] Eliminar fondo con IA real (por ejemplo `@imgly/background-removal`, que corre en el navegador).
 
 ## Registro de cambios
+
+### 2026-10-18 (Nuvex IA con Gemini)
+- **Nuvex IA ahora conversa con Gemini**:
+  - Ruta `/api/assistant` con la clave solo en el servidor.
+  - Respuesta estructurada `{ text, toolIds }`.
+  - Límites contra abuso.
+  - Vuelve al asistente local si la IA no está disponible.
+- El sitio deja de ser exportación estática: las páginas siguen siendo HTML estático, más una ruta de servidor. Se quitó `vercel.json`, que ya no hace falta.
+- `next.config.js` conserva `console.error`/`warn` en producción, para ver los fallos en Vercel → Logs.
+- La nota del chat ahora dice que lo escrito se envía a Google (los archivos no).
+- Tests nuevos: `assistantAi.test.js` (lógica, Gemini simulado, ruta de la API y respaldo local). Total: 87.
 
 ### 2026-10-18 (mantenimiento)
 - **Actualizaciones**: Next 15 → 16, React 18 → 19, Tailwind 3 → 4 (con su herramienta oficial de migración), Jest 29 → 30 y Testing Library 14 → 16.

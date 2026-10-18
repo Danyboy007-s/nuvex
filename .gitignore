@@ -9,3 +9,7 @@ public/sw.js
 public/sw.js.map
 public/workbox-*.js
 public/workbox-*.js.map
+
+# Variables de entorno con claves (p. ej. GEMINI_API_KEY): nunca se suben
+.env
+.env*.local
